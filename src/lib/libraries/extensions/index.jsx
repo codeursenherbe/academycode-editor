@@ -46,7 +46,7 @@ import gdxforInsetIconURL from './gdxfor/gdxfor-small.svg';
 import gdxforConnectionIconURL from './gdxfor/gdxfor-illustration.svg';
 import gdxforConnectionSmallIconURL from './gdxfor/gdxfor-small.svg';
 
-export default [
+const allExtensions = [
     {
         name: (
             <FormattedMessage
@@ -319,3 +319,6 @@ export default [
         helpLink: 'https://scratch.mit.edu/vernier'
     }
 ];
+
+// AcademyCode : uniquement les extensions sans service externe ni matériel.
+export default allExtensions.filter(({extensionId}) => ['music', 'pen'].includes(extensionId));
