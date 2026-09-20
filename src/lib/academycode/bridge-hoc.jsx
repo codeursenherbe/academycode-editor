@@ -5,7 +5,7 @@ import VM from 'scratch-vm';
 
 import {getIsShowingProject} from '../../reducers/project-state';
 import AutoSaver from './autosave.js';
-import {lessonId, fetchProject, putProject, NETWORK_MESSAGE} from './api.js';
+import {lessonId, fetchProject, putProject, fetchConsignes, NETWORK_MESSAGE} from './api.js';
 
 const PERIOD_MS = 30000;
 
@@ -25,6 +25,40 @@ const BAR_STYLE = {
     font: '14px sans-serif',
     color: '#575e75'
 };
+// Le message de vérification : vert quand la leçon est validée, neutre sinon.
+const NOTICE_STYLE = reussi => ({
+    position: 'fixed',
+    right: 8,
+    bottom: 52,
+    zIndex: 1001,
+    maxWidth: 320,
+    padding: '10px 12px',
+    background: reussi ? '#e8f7ee' : '#fff',
+    border: `1px solid ${reussi ? '#3aa76d' : '#d9d9d9'}`,
+    borderRadius: 8,
+    font: '14px sans-serif',
+    lineHeight: 1.4,
+    color: reussi ? '#14532d' : '#333'
+});
+
+const PANEL_STYLE = {
+    position: 'fixed',
+    right: 8,
+    bottom: 52,
+    zIndex: 1000,
+    maxWidth: 320,
+    maxHeight: '60vh',
+    overflowY: 'auto',
+    padding: '10px 12px',
+    background: '#fff',
+    border: '1px solid #d9d9d9',
+    borderRadius: 8,
+    font: 'inherit',
+    fontSize: 14,
+    lineHeight: 1.4,
+    color: '#222'
+};
+
 const BUTTON_STYLE = {
     background: '#4c97ff',
     color: '#fff',
@@ -48,7 +82,7 @@ const BridgeHOC = function (WrappedComponent) {
             super(props);
             this.lesson = lessonId();
             this.started = false;
-            this.state = {message: '', busy: false};
+            this.state = {message: '', busy: false, fullscreen: false, consignes: null, panneau: true, termine: false};
             this.saver = new AutoSaver({
                 save: () => this.save(),
                 periodMs: PERIOD_MS,
@@ -60,6 +94,10 @@ const BridgeHOC = function (WrappedComponent) {
                 if (document.visibilityState === 'hidden') this.saver.tick();
             };
             this.handleVerify = this.handleVerify.bind(this);
+            this.handleFullscreen = this.handleFullscreen.bind(this);
+            this.handleFullscreenChange = this.handleFullscreenChange.bind(this);
+            this.handlePanneau = this.handlePanneau.bind(this);
+            this.handleSuite = this.handleSuite.bind(this);
         }
 
         componentDidUpdate () {
@@ -71,6 +109,7 @@ const BridgeHOC = function (WrappedComponent) {
 
         componentWillUnmount () {
             this.saver.stop();
+            document.removeEventListener('fullscreenchange', this.handleFullscreenChange);
             document.removeEventListener('visibilitychange', this.handleHidden);
             window.removeEventListener('pagehide', this.handleHidden);
             if (this.props.vm) this.props.vm.off('PROJECT_CHANGED', this.handleChanged);
@@ -86,8 +125,10 @@ const BridgeHOC = function (WrappedComponent) {
             } catch (error) {
                 this.setState({message: error.message});
             }
+            fetchConsignes(this.lesson).then(consignes => this.setState({consignes})).catch(() => {});
             this.saver.markClean();
             this.props.vm.on('PROJECT_CHANGED', this.handleChanged);
+            document.addEventListener('fullscreenchange', this.handleFullscreenChange);
             document.addEventListener('visibilitychange', this.handleHidden);
             window.addEventListener('pagehide', this.handleHidden);
             this.saver.start();
@@ -100,11 +141,38 @@ const BridgeHOC = function (WrappedComponent) {
             return data;
         }
 
+        // Plein écran natif : l'éditeur Scratch est à l'étroit dans l'iframe de la leçon.
+        // Nécessite allowfullscreen sur l'iframe côté AcademyCode.
+        handleFullscreen () {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                document.documentElement.requestFullscreen();
+            }
+        }
+
+        // Ramène l'enfant à la page de la leçon (quiz, bouton « Leçon terminée »),
+        // qui est sous l'iframe : on sort du plein écran et la page fait défiler.
+        handleSuite () {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            }
+            window.parent.postMessage({academycode: 'lecon-terminee'}, window.location.origin);
+        }
+
+        handlePanneau () {
+            this.setState(state => ({panneau: !state.panneau}));
+        }
+
+        handleFullscreenChange () {
+            this.setState({fullscreen: Boolean(document.fullscreenElement)});
+        }
+
         async handleVerify () {
             this.setState({busy: true, message: 'Vérification en cours…'});
             try {
                 const data = await this.saver.flush(true);
-                this.setState({busy: false, message: data.message});
+                this.setState({busy: false, message: data.message, termine: Boolean(data.completed)});
             } catch (error) {
                 this.setState({busy: false, message: error.message});
             }
@@ -121,6 +189,38 @@ const BridgeHOC = function (WrappedComponent) {
             return (
                 <React.Fragment>
                     <WrappedComponent {...componentProps} />
+                    {this.lesson && this.state.message && (
+                        <div
+                            role="status"
+                            style={NOTICE_STYLE(this.state.termine)}
+                        >
+                            <div>{this.state.message}</div>
+                            {this.state.termine && (
+                                <button
+                                    style={{...BUTTON_STYLE, marginTop: 8, background: '#3aa76d'}}
+                                    onClick={this.handleSuite}
+                                >
+                                    {'Continuer la leçon'}
+                                </button>
+                            )}
+                        </div>
+                    )}
+                    {this.lesson && this.state.consignes && this.state.panneau && (
+                        <div style={{...PANEL_STYLE, bottom: this.state.message ? 140 : 52}}>
+                            <strong>{this.state.consignes.titre}</strong>
+                            {this.state.consignes.objectif && (
+                                <p style={{margin: '4px 0 8px'}}>{this.state.consignes.objectif}</p>
+                            )}
+                            <ol style={{margin: 0, paddingLeft: 18}}>
+                                {this.state.consignes.etapes.map((etape, i) => (
+                                    <li
+                                        key={i}
+                                        style={{marginBottom: 4}}
+                                    >{etape}</li>
+                                ))}
+                            </ol>
+                        </div>
+                    )}
                     {this.lesson && (
                         <div
                             role="status"
@@ -133,7 +233,21 @@ const BridgeHOC = function (WrappedComponent) {
                             >
                                 {'Vérifier mon projet'}
                             </button>
-                            <span>{this.state.message}</span>
+                            <button
+                                style={BUTTON_STYLE}
+                                onClick={this.handleFullscreen}
+                            >
+                                {this.state.fullscreen ? 'Retour à la leçon' : 'Plein écran'}
+                            </button>
+                            {this.state.consignes && (
+                                <button
+                                    style={BUTTON_STYLE}
+                                    onClick={this.handlePanneau}
+                                >
+                                    {this.state.panneau ? 'Cacher les consignes' : 'Voir les consignes'}
+                                </button>
+                            )}
+
                         </div>
                     )}
                 </React.Fragment>

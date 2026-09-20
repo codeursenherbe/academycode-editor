@@ -1,4 +1,4 @@
-export const NETWORK_MESSAGE = 'Ton projet n\'est pas encore sauvegardé, on réessaie.';
+export const NETWORK_MESSAGE = 'La connexion est coupée, on réessaie tout seul. Ton travail reste là.';
 
 /**
  * Identifiant de la leçon, passé par la page AcademyCode : /editeur/index.html?lecon=12
@@ -52,4 +52,27 @@ export const putProject = async (id, blob) => {
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.message || NETWORK_MESSAGE);
     return data;
+};
+
+/**
+ * URL des consignes d'une leçon.
+ * @param {string} id identifiant de la leçon
+ * @returns {string} chemin de l'API
+ */
+export const consignesUrl = id => `/app/atelier/${encodeURIComponent(id)}/consignes`;
+
+/**
+ * Récupère les consignes de la leçon (titre, objectif, étapes).
+ * @param {string} id identifiant de la leçon
+ * @returns {Promise<?object>} consignes, ou null si indisponibles
+ */
+export const fetchConsignes = async id => {
+    const response = await fetch(consignesUrl(id), {
+        credentials: 'same-origin',
+        headers: {Accept: 'application/json'}
+    });
+    if (!response.ok) {
+        return null;
+    }
+    return response.json();
 };

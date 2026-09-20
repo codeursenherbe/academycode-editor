@@ -54,11 +54,10 @@ const ProjectSaverHOC = function (WrappedComponent) {
             ]);
         }
         componentWillMount () {
-            if (typeof window === 'object') {
-                // Note: it might be better to use a listener instead of assigning onbeforeunload;
-                // but then it'd be hard to turn this listening off in our tests
-                window.onbeforeunload = e => this.leavePageConfirm(e);
-            }
+            // AcademyCode : pas de confirmation de sortie. Le projet est sauvegardé tout seul
+            // (voir lib/academycode/autosave.js), et « Les modifications ne seront peut-être pas
+            // enregistrées » est un message inquiétant pour un enfant. L'amont posait ici :
+            // window.onbeforeunload = e => this.leavePageConfirm(e);
 
             // Allow the GUI consumer to pass in a function to receive a trigger
             // for triggering thumbnail or whole project saves.
