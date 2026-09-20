@@ -1,0 +1,5 @@
+{
+    "sprites": ["Cat", "Ball", "Apple", "Bananas", "Star", "Dog1", "Fish", "Butterfly 1", "Ghost", "Balloon1"],
+    "backdrops": ["Blue Sky", "Light", "Stripes", "Space", "Xy-grid", "Woods", "Beach Malibu"],
+    "sounds": ["Meow", "Pop", "Boing", "Collect", "Chirp", "Cymbal", "Drum", "Laugh1", "Tada"]
+}
