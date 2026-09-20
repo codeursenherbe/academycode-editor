@@ -164,8 +164,17 @@ const BridgeHOC = function (WrappedComponent) {
             this.setState(state => ({panneau: !state.panneau}));
         }
 
+        // Le navigateur quitte le plein écran de lui-même dès qu'il ouvre une fenêtre système
+        // (import d'une image, par exemple) : on le dit à l'enfant plutôt que de le laisser deviner.
         handleFullscreenChange () {
-            this.setState({fullscreen: Boolean(document.fullscreenElement)});
+            const fullscreen = Boolean(document.fullscreenElement);
+            const sorti = this.state.fullscreen && !fullscreen;
+            this.setState({
+                fullscreen,
+                message: sorti && !this.state.termine ?
+                    'Tu es revenu à la leçon. Clique sur « Plein écran » pour agrandir à nouveau.' :
+                    this.state.message
+            });
         }
 
         async handleVerify () {
