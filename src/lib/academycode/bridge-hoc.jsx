@@ -41,14 +41,18 @@ const NOTICE_STYLE = reussi => ({
     color: reussi ? '#14532d' : '#333'
 });
 
+// Ancré en haut à gauche, au-dessus de la palette de blocs : c'est une zone de lecture,
+// alors que la zone de code à droite doit rester entièrement visible et cliquable.
 const PANEL_STYLE = {
     position: 'fixed',
-    right: 8,
-    bottom: 52,
+    left: 8,
+    // Sous la barre de menus et les onglets Code/Costumes/Sons, qui doivent rester cliquables.
+    top: 92,
     zIndex: 1000,
-    maxWidth: 320,
-    maxHeight: '60vh',
+    width: 260,
+    maxHeight: 'calc(100vh - 120px)',
     overflowY: 'auto',
+    boxShadow: '0 2px 8px rgba(0,0,0,.15)',
     padding: '10px 12px',
     background: '#fff',
     border: '1px solid #d9d9d9',
@@ -217,7 +221,7 @@ const BridgeHOC = function (WrappedComponent) {
                         </div>
                     )}
                     {this.lesson && this.state.consignes && this.state.panneau && (
-                        <div style={{...PANEL_STYLE, bottom: this.state.message ? 140 : 52}}>
+                        <div style={PANEL_STYLE}>
                             <strong>{this.state.consignes.titre}</strong>
                             {this.state.consignes.objectif && (
                                 <p style={{margin: '4px 0 8px'}}>{this.state.consignes.objectif}</p>

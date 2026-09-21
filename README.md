@@ -1,3 +1,21 @@
+> ## AcademyCode — fork indépendant
+>
+> Ce dépôt est un fork de [`scratch-gui`](https://github.com/scratchfoundation/scratch-gui)
+> modifié pour AcademyCode, une académie de programmation pour les 8-18 ans.
+>
+> **AcademyCode est un projet indépendant. Il n'est ni produit, ni soutenu, ni approuvé par la
+> Scratch Foundation ni par le Massachusetts Institute of Technology (MIT).**
+>
+> Le code d'origine reste sous licence [AGPL-3.0](LICENSE), et ce fork aussi. La licence porte sur
+> le code : elle n'accorde aucun droit sur les marques Scratch (nom, logo, Scratch Cat, Gobo, Pico,
+> Nano, Tera, Giga), qui appartiennent au MIT — voir [`TRADEMARK`](TRADEMARK).
+>
+> *AcademyCode is an independent project. It is not produced, endorsed or approved by the Scratch
+> Foundation or MIT. The AGPL-3.0 license covers the code only and grants no rights over the Scratch
+> trademarks.*
+>
+> Les modifications propres à AcademyCode sont décrites dans [`ACADEMYCODE.md`](ACADEMYCODE.md).
+
 # scratch-gui
 
 ## **⚠️ NOTICE: Repository Migration to Mono-Repo ⚠️**
