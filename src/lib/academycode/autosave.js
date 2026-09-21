@@ -4,7 +4,15 @@
  * ne repousse donc jamais la sauvegarde.
  */
 export default class AutoSaver {
-    constructor ({save, onError = () => {}, periodMs = 30000, setTimer = setInterval, clearTimer = clearInterval}) {
+    constructor ({
+        save,
+        onError = () => {},
+        periodMs = 30000,
+        // Liés à window : appelés comme this.setTimer(...), les minuteurs natifs lèvent
+        // « Illegal invocation » car ils perdent leur receveur.
+        setTimer = (...args) => setInterval(...args),
+        clearTimer = (...args) => clearInterval(...args)
+    }) {
         this.save = save;
         this.onError = onError;
         this.periodMs = periodMs;

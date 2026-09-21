@@ -137,7 +137,9 @@ const BridgeHOC = function (WrappedComponent) {
         async save () {
             const blob = await this.props.vm.saveProjectSb3();
             const data = await putProject(this.lesson, blob);
-            this.setState({message: 'Projet sauvegardé.'});
+            // Succès : on efface un éventuel message de coupure réseau, sinon l'enfant
+            // continue de lire « la connexion est coupée » alors que tout est sauvegardé.
+            this.setState({message: 'Projet sauvegardé.', busy: false});
             return data;
         }
 

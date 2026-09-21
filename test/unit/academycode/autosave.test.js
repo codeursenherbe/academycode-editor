@@ -82,3 +82,28 @@ test('flush(true) propage l\'erreur à l\'appelant (bouton Vérifier)', async ()
         error => expect(error.message).toBe('Trop lourd')
     );
 });
+
+// Scénario réel de la recette : coupure réseau, l'enfant ne touche plus à rien,
+// puis le réseau revient. La sauvegarde doit repartir seule, sans nouvelle modification.
+test('apres une coupure, le retour du reseau suffit a sauvegarder sans nouvelle modification', async () => {
+    let online = false;
+    const save = jest.fn(() => (online ? Promise.resolve({saved: true}) : Promise.reject(new Error('réseau'))));
+    const {saver, tick, onError} = makeSaver(save);
+    saver.markDirty();
+    await tick();
+    expect(onError).toHaveBeenCalledTimes(1);
+    online = true;
+    await tick();
+    expect(save).toHaveBeenCalledTimes(2);
+    await tick();
+    expect(save).toHaveBeenCalledTimes(2);
+});
+
+// Régression : les minuteurs par défaut doivent fonctionner tels quels. Détachés de window,
+// setInterval lève « Illegal invocation » et l'auto-sauvegarde ne démarre jamais — ce que les
+// tests ne voyaient pas, puisqu'ils injectent tous un faux minuteur.
+test('start() fonctionne avec les minuteurs natifs, sans injection', () => {
+    const saver = new AutoSaver({save: () => Promise.resolve({saved: true}), periodMs: 10000});
+    expect(() => saver.start()).not.toThrow();
+    saver.stop();
+});
