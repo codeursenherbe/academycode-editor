@@ -29,11 +29,12 @@ export const fetchProject = async id => {
 };
 
 /**
- * @param {string} id - identifiant de la leçon
+ * @param {string} id - identifiant de la leçon (ou « defi-N » pour un défi)
  * @param {Blob} blob - le projet .sb3 à envoyer
+ * @param {boolean} verify - vrai pour « Vérifier mon projet », faux pour l'auto-sauvegarde
  * @returns {Promise<object>} réponse JSON du serveur ; jette une Error au message pédagogique sinon
  */
-export const putProject = async (id, blob) => {
+export const putProject = async (id, blob, verify = false) => {
     let response;
     try {
         response = await fetch(projectUrl(id), {
@@ -43,7 +44,10 @@ export const putProject = async (id, blob) => {
             headers: {
                 'Content-Type': 'application/octet-stream',
                 'Accept': 'application/json',
-                'X-XSRF-TOKEN': xsrfToken()
+                'X-XSRF-TOKEN': xsrfToken(),
+                // « Vérifier mon projet » (geste volontaire) se distingue de l'auto-sauvegarde :
+                // AcademyCode n'évalue une tentative de défi que sur cette intention.
+                ...(verify ? {'X-AcademyCode-Intent': 'verify'} : {})
             }
         });
     } catch (error) {

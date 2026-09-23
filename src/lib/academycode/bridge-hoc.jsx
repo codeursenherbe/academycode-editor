@@ -140,7 +140,10 @@ const BridgeHOC = function (WrappedComponent) {
 
         async save () {
             const blob = await this.props.vm.saveProjectSb3();
-            const data = await putProject(this.lesson, blob);
+            // L'intention « vérifier » est posée par handleVerify et consommée ici, une fois.
+            const verify = this.verifying === true;
+            this.verifying = false;
+            const data = await putProject(this.lesson, blob, verify);
             // Succès : on efface un éventuel message de coupure réseau, sinon l'enfant
             // continue de lire « la connexion est coupée » alors que tout est sauvegardé.
             this.setState({message: 'Projet sauvegardé.', busy: false});
@@ -186,6 +189,7 @@ const BridgeHOC = function (WrappedComponent) {
         async handleVerify () {
             this.setState({busy: true, message: 'Vérification en cours…'});
             try {
+                this.verifying = true;
                 const data = await this.saver.flush(true);
                 this.setState({busy: false, message: data.message, termine: Boolean(data.completed)});
             } catch (error) {
