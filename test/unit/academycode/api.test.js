@@ -1,5 +1,5 @@
 /** @jest-environment jsdom */
-import {xsrfToken, putProject, fetchProject, NETWORK_MESSAGE} from '../../../src/lib/academycode/api.js';
+import {xsrfToken, putProject, fetchProject, isChallenge, NETWORK_MESSAGE} from '../../../src/lib/academycode/api.js';
 
 beforeEach(() => {
     document.cookie = 'XSRF-TOKEN=abc%3D%3D; path=/';
@@ -42,4 +42,13 @@ test('une panne réseau donne un message pédagogique', async () => {
 test('fetchProject renvoie null quand l\'enfant n\'a pas encore de projet (204)', async () => {
     global.fetch = jest.fn(() => Promise.resolve({status: 204, ok: true}));
     await expect(fetchProject('12')).resolves.toBeNull();
+});
+
+// Défi ou leçon : le pont adapte ses libellés (« Voir ma preuve ») et ferme la bulle de consignes
+// dans un défi, où la mission est déjà écrite sur la page (simulation du 28/09/2026).
+test('isChallenge reconnaît un défi à son préfixe « defi- »', () => {
+    expect(isChallenge('defi-5')).toBe(true);
+    expect(isChallenge('12')).toBe(false);
+    expect(isChallenge('preuve-3')).toBe(false);
+    expect(isChallenge(null)).toBe(false);
 });

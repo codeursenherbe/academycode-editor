@@ -5,7 +5,7 @@ import VM from 'scratch-vm';
 
 import {getIsShowingProject} from '../../reducers/project-state';
 import AutoSaver from './autosave.js';
-import {lessonId, fetchProject, putProject, fetchConsignes, NETWORK_MESSAGE} from './api.js';
+import {lessonId, isChallenge, fetchProject, putProject, fetchConsignes, NETWORK_MESSAGE} from './api.js';
 
 const PERIOD_MS = 30000;
 
@@ -85,8 +85,13 @@ const BridgeHOC = function (WrappedComponent) {
         constructor (props) {
             super(props);
             this.lesson = lessonId();
+            // Défi : la mission est écrite sur la page ; la bulle fermée laisse voir toute la palette.
+            this.challenge = isChallenge(this.lesson);
+            this.retour = this.challenge ? 'Retour au défi' : 'Retour à la leçon';
             this.started = false;
-            this.state = {message: '', busy: false, fullscreen: false, consignes: null, panneau: true, termine: false};
+            this.state = {
+                message: '', busy: false, fullscreen: false, consignes: null, panneau: !this.challenge, termine: false
+            };
             this.saver = new AutoSaver({
                 save: () => this.save(),
                 periodMs: PERIOD_MS,
@@ -219,7 +224,7 @@ const BridgeHOC = function (WrappedComponent) {
                                     style={{...BUTTON_STYLE, marginTop: 8, background: '#3aa76d'}}
                                     onClick={this.handleSuite}
                                 >
-                                    {'Continuer la leçon'}
+                                    {this.challenge ? 'Voir ma preuve' : 'Continuer la leçon'}
                                 </button>
                             )}
                         </div>
@@ -256,7 +261,7 @@ const BridgeHOC = function (WrappedComponent) {
                                 style={BUTTON_STYLE}
                                 onClick={this.handleFullscreen}
                             >
-                                {this.state.fullscreen ? 'Retour à la leçon' : 'Plein écran'}
+                                {this.state.fullscreen ? this.retour : 'Plein écran'}
                             </button>
                             {this.state.consignes && (
                                 <button

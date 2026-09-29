@@ -6,6 +6,13 @@ export const NETWORK_MESSAGE = 'La connexion est coupée, on réessaie tout seul
  */
 export const lessonId = () => new URLSearchParams(window.location.search).get('lecon');
 
+/**
+ * Un défi AcademyCode (« defi-{id} ») plutôt qu'une leçon : libellés et bulle de consignes s'adaptent.
+ * @param {?string} id identifiant lu dans `?lecon=`
+ * @returns {boolean} vrai pour un défi
+ */
+export const isChallenge = id => typeof id === 'string' && id.startsWith('defi-');
+
 export const projectUrl = id => `/app/atelier/${encodeURIComponent(id)}/projet`;
 
 /**
