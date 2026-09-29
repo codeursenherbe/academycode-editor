@@ -26,13 +26,17 @@ export const xsrfToken = () => {
 
 /**
  * @param {string} id - identifiant de la leçon
- * @returns {Promise<ArrayBuffer|null>} null si l'enfant n'a pas encore de projet
+ * @returns {Promise<?{buffer: ArrayBuffer, depart: boolean}>} null si l'enfant n'a pas encore de
+ *     projet ; `depart` vrai quand AcademyCode sert le projet de départ d'un défi, pas son travail
  */
 export const fetchProject = async id => {
     const response = await fetch(projectUrl(id), {credentials: 'same-origin', cache: 'no-store'});
     if (response.status === 204 || response.status === 404) return null;
     if (!response.ok) throw new Error('Le projet n\'a pas pu être rechargé.');
-    return response.arrayBuffer();
+    return {
+        buffer: await response.arrayBuffer(),
+        depart: response.headers.get('X-AcademyCode-Depart') === '1'
+    };
 };
 
 /**

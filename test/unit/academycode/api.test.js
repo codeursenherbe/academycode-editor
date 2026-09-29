@@ -39,6 +39,22 @@ test('une panne réseau donne un message pédagogique', async () => {
     );
 });
 
+// Projet de départ d'un défi (en-tête X-AcademyCode-Depart) : pas encore le travail de l'enfant,
+// l'éditeur ne dit donc pas « Ton projet a été rechargé » (simulation du 28/09/2026).
+test('fetchProject distingue le projet de départ du travail de l\'enfant', async () => {
+    const buffer = new ArrayBuffer(4);
+    const reponse = depart => ({
+        status: 200,
+        ok: true,
+        headers: {get: nom => (nom === 'X-AcademyCode-Depart' && depart ? '1' : null)},
+        arrayBuffer: () => Promise.resolve(buffer)
+    });
+    global.fetch = jest.fn(() => Promise.resolve(reponse(true)));
+    await expect(fetchProject('defi-5')).resolves.toEqual({buffer, depart: true});
+    global.fetch = jest.fn(() => Promise.resolve(reponse(false)));
+    await expect(fetchProject('defi-5')).resolves.toEqual({buffer, depart: false});
+});
+
 test('fetchProject renvoie null quand l\'enfant n\'a pas encore de projet (204)', async () => {
     global.fetch = jest.fn(() => Promise.resolve({status: 204, ok: true}));
     await expect(fetchProject('12')).resolves.toBeNull();

@@ -126,15 +126,18 @@ const BridgeHOC = function (WrappedComponent) {
 
         async begin () {
             try {
-                const buffer = await fetchProject(this.lesson);
-                if (buffer) {
-                    await this.props.vm.loadProject(buffer);
-                    this.setState({message: 'Ton projet a été rechargé.'});
+                const projet = await fetchProject(this.lesson);
+                if (projet) {
+                    await this.props.vm.loadProject(projet.buffer);
+                    // Projet de départ d'un défi : rien n'a été « rechargé », on ne dit rien.
+                    if (!projet.depart) this.setState({message: 'Ton projet a été rechargé.'});
                 }
             } catch (error) {
                 this.setState({message: error.message});
             }
-            fetchConsignes(this.lesson).then(consignes => this.setState({consignes})).catch(() => {});
+            fetchConsignes(this.lesson)
+                .then(consignes => this.setState({consignes}))
+                .catch(() => {});
             this.saver.markClean();
             this.props.vm.on('PROJECT_CHANGED', this.handleChanged);
             document.addEventListener('fullscreenchange', this.handleFullscreenChange);
