@@ -11,7 +11,7 @@
   },
   "main": "./dist/scratch-gui.js",
   "scripts": {
-    "build": "npm run clean && webpack",
+    "build": "npm run clean && webpack --node-env production",
     "assets": "node scripts/select-assets.mjs",
     "deploy:local": "node scripts/deploy-local.mjs",
     "clean": "rimraf ./build ./dist",
