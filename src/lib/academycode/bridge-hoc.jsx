@@ -9,27 +9,24 @@ import {lessonId, isChallenge, fetchProject, putProject, fetchConsignes, NETWORK
 
 const PERIOD_MS = 30000;
 
+// Dans la barre de menus, à droite (vide à cet endroit) : rien ne recouvre l'ajout de sprite
+// ni les boutons de zoom.
 const BAR_STYLE = {
     position: 'fixed',
     right: 8,
-    bottom: 8,
+    top: 6,
     zIndex: 1000,
     display: 'flex',
-    gap: 8,
+    gap: 6,
     alignItems: 'center',
-    maxWidth: '60%',
-    padding: '6px 10px',
-    background: '#fff',
-    border: '1px solid #ccc',
-    borderRadius: 8,
-    font: '14px sans-serif',
-    color: '#575e75'
+    font: '600 14px sans-serif'
 };
 // Le message de vérification : vert quand la leçon est validée, neutre sinon.
 const NOTICE_STYLE = reussi => ({
     position: 'fixed',
     right: 8,
-    bottom: 52,
+    // Sous les boutons de taille de la scène (jusqu'à 92 px), qui restent cliquables.
+    top: 100,
     zIndex: 1001,
     maxWidth: 320,
     padding: '10px 12px',
@@ -41,11 +38,11 @@ const NOTICE_STYLE = reussi => ({
     color: reussi ? '#14532d' : '#333'
 });
 
-// Ancré en haut à gauche, au-dessus de la palette de blocs : c'est une zone de lecture,
-// alors que la zone de code à droite doit rester entièrement visible et cliquable.
+// Juste à droite de la palette (qui finit à 312 px) : les catégories que les consignes
+// demandent d'utiliser restent visibles. 260 px tiennent dans la zone de code à 1024 px.
 const PANEL_STYLE = {
     position: 'fixed',
-    left: 8,
+    left: 320,
     // Sous la barre de menus et les onglets Code/Costumes/Sons, qui doivent rester cliquables.
     top: 92,
     zIndex: 1000,
@@ -63,14 +60,22 @@ const PANEL_STYLE = {
     color: '#222'
 };
 
+// Bouton principal aux couleurs d'AcademyCode (brand-600), secondaires discrets sur le violet du menu.
 const BUTTON_STYLE = {
-    background: '#4c97ff',
-    color: '#fff',
-    border: 0,
-    borderRadius: 6,
-    padding: '6px 12px',
+    background: '#fff',
+    color: '#4f46e5',
+    border: '1px solid #fff',
+    borderRadius: 999,
+    padding: '6px 14px',
     font: 'inherit',
     cursor: 'pointer'
+};
+const BUTTON_SUITE = {...BUTTON_STYLE, marginTop: 8, background: '#3aa76d', borderColor: '#3aa76d', color: '#fff'};
+const BUTTON_SECONDAIRE = {
+    ...BUTTON_STYLE,
+    background: 'transparent',
+    color: '#fff',
+    border: '1px solid rgba(255,255,255,.6)'
 };
 
 /**
@@ -224,7 +229,7 @@ const BridgeHOC = function (WrappedComponent) {
                             <div>{this.state.message}</div>
                             {this.state.termine && (
                                 <button
-                                    style={{...BUTTON_STYLE, marginTop: 8, background: '#3aa76d'}}
+                                    style={BUTTON_SUITE}
                                     onClick={this.handleSuite}
                                 >
                                     {this.challenge ? 'Voir ma preuve' : 'Continuer la leçon'}
@@ -261,14 +266,14 @@ const BridgeHOC = function (WrappedComponent) {
                                 {'Vérifier mon projet'}
                             </button>
                             <button
-                                style={BUTTON_STYLE}
+                                style={BUTTON_SECONDAIRE}
                                 onClick={this.handleFullscreen}
                             >
                                 {this.state.fullscreen ? this.retour : 'Plein écran'}
                             </button>
                             {this.state.consignes && (
                                 <button
-                                    style={BUTTON_STYLE}
+                                    style={BUTTON_SECONDAIRE}
                                     onClick={this.handlePanneau}
                                 >
                                     {this.state.panneau ? 'Cacher les consignes' : 'Voir les consignes'}
