@@ -16,6 +16,27 @@ export const isChallenge = id => typeof id === 'string' && id.startsWith('defi-'
 export const projectUrl = id => `/app/atelier/${encodeURIComponent(id)}/projet`;
 
 /**
+ * Programme mystère (pilote AcademyCode du 09/10/2026) : /editeur/index.html?lecteur=la-machine-qui-accelere.
+ * L'éditeur s'ouvre en lecteur : la scène seule, aucun script, aucune sauvegarde, aucun projet d'enfant.
+ * Le nom ne contient que des minuscules, chiffres et tirets : il désigne un fichier publié, jamais un chemin.
+ * @returns {?string} le nom du programme mystère, ou null hors lecteur
+ */
+export const mysteryId = () => {
+    const id = new URLSearchParams(window.location.search).get('lecteur');
+    return id && /^[a-z0-9-]{1,60}$/.test(id) ? id : null;
+};
+
+/**
+ * @param {string} id - nom du programme mystère (voir mysteryId)
+ * @returns {Promise<ArrayBuffer>} le projet .sb3 publié par AcademyCode dans /scratch-mysteres/
+ */
+export const fetchMystery = async id => {
+    const response = await fetch(`/scratch-mysteres/${id}.sb3`, {credentials: 'same-origin'});
+    if (!response.ok) throw new Error('La machine mystère ne s’est pas chargée. Recharge la page.');
+    return response.arrayBuffer();
+};
+
+/**
  * Jeton CSRF de Laravel : cookie XSRF-TOKEN (lisible en JS, même origine), envoyé en en-tête.
  * @returns {string} le jeton décodé, ou une chaîne vide si le cookie est absent
  */

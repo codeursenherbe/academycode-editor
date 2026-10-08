@@ -5,7 +5,9 @@ import VM from 'scratch-vm';
 
 import {getIsShowingProject} from '../../reducers/project-state';
 import AutoSaver from './autosave.js';
-import {lessonId, isChallenge, fetchProject, putProject, fetchConsignes, NETWORK_MESSAGE} from './api.js';
+import {
+    lessonId, isChallenge, fetchProject, putProject, fetchConsignes, mysteryId, fetchMystery, NETWORK_MESSAGE
+} from './api.js';
 
 const PERIOD_MS = 30000;
 
@@ -89,7 +91,10 @@ const BridgeHOC = function (WrappedComponent) {
     class Bridge extends React.Component {
         constructor (props) {
             super(props);
-            this.lesson = lessonId();
+            // Lecteur d'un programme mystère : ni leçon, ni projet d'enfant, ni sauvegarde ;
+            // seulement le projet publié.
+            this.mystery = mysteryId();
+            this.lesson = this.mystery ? null : lessonId();
             // Défi : la mission est écrite sur la page ; la bulle fermée laisse voir toute la palette.
             this.challenge = isChallenge(this.lesson);
             this.retour = this.challenge ? 'Retour au défi' : 'Retour à la leçon';
@@ -115,6 +120,12 @@ const BridgeHOC = function (WrappedComponent) {
         }
 
         componentDidUpdate () {
+            if (this.mystery && !this.started && this.props.ready) {
+                this.started = true;
+                fetchMystery(this.mystery)
+                    .then(buffer => this.props.vm.loadProject(buffer))
+                    .catch(error => this.setState({message: error.message}));
+            }
             if (this.lesson && !this.started && this.props.ready) {
                 this.started = true;
                 this.begin();
@@ -221,6 +232,12 @@ const BridgeHOC = function (WrappedComponent) {
             return (
                 <React.Fragment>
                     <WrappedComponent {...componentProps} />
+                    {this.mystery && this.state.message && (
+                        <div
+                            role="status"
+                            style={NOTICE_STYLE(false)}
+                        >{this.state.message}</div>
+                    )}
                     {this.lesson && this.state.message && (
                         <div
                             role="status"
