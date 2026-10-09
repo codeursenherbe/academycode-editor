@@ -1,0 +1,16 @@
+{
+ "juste-1-comme-la-machine": "conforme",
+ "juste-2-non-inferieur-plus-un": "conforme",
+ "juste-3-niveau-du-sprite": "conforme",
+ "juste-4-majuscule": "conforme",
+ "juste-5-clones-attentes-hasard": "conforme",
+ "juste-6-message-de-depart": "conforme",
+ "juste-7-attendre-dans-la-boucle": "conforme",
+ "faux-1-superieur-ou-egal": "different",
+ "faux-2-palier-fige": "different",
+ "faux-3-vitesse-figee": "different",
+ "limite-1-regle-au-moment-du-point": "impossible",
+ "limite-2-rien-ne-tombe": "impossible",
+ "limite-3-demarre-au-clic": "impossible",
+ "limite-4-deux-variables-score": "impossible"
+}

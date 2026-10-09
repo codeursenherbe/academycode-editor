@@ -6,8 +6,10 @@ import VM from 'scratch-vm';
 import {getIsShowingProject} from '../../reducers/project-state';
 import AutoSaver from './autosave.js';
 import {
-    lessonId, isChallenge, fetchProject, putProject, fetchConsignes, mysteryId, fetchMystery, NETWORK_MESSAGE
+    lessonId, isChallenge, fetchProject, putProject, fetchConsignes, mysteryId, fetchMystery, NETWORK_MESSAGE,
+    comparedMysteryId, fetchMysteryConfig, restartProject
 } from './api.js';
+import {observer, comparer, message as messageComportement} from './comportement.mjs';
 
 const PERIOD_MS = 30000;
 
@@ -95,12 +97,21 @@ const BridgeHOC = function (WrappedComponent) {
             // seulement le projet publié.
             this.mystery = mysteryId();
             this.lesson = this.mystery ? null : lessonId();
+            // Leçon à programme mystère : « Vérifier » compare aussi le comportement (étape 2 du pilote).
+            this.compare = this.lesson ? comparedMysteryId() : null;
             // Défi : la mission est écrite sur la page ; la bulle fermée laisse voir toute la palette.
             this.challenge = isChallenge(this.lesson);
             this.retour = this.challenge ? 'Retour au défi' : 'Retour à la leçon';
             this.started = false;
             this.state = {
-                message: '', busy: false, fullscreen: false, consignes: null, panneau: !this.challenge, termine: false
+                message: '',
+                comportement: '',
+                busy: false,
+                fullscreen: false,
+                consignes: null,
+                panneau: !this.challenge,
+                termine: false,
+                confirmer: false
             };
             this.saver = new AutoSaver({
                 save: () => this.save(),
@@ -117,6 +128,9 @@ const BridgeHOC = function (WrappedComponent) {
             this.handleFullscreenChange = this.handleFullscreenChange.bind(this);
             this.handlePanneau = this.handlePanneau.bind(this);
             this.handleSuite = this.handleSuite.bind(this);
+            this.handleRestartAsk = () => this.setState({confirmer: true});
+            this.handleRestartCancel = () => this.setState({confirmer: false});
+            this.handleRestart = this.handleRestart.bind(this);
         }
 
         componentDidUpdate () {
@@ -211,13 +225,60 @@ const BridgeHOC = function (WrappedComponent) {
         }
 
         async handleVerify () {
-            this.setState({busy: true, message: 'Vérification en cours…'});
+            this.setState({busy: true, message: 'Vérification en cours…', comportement: ''});
             try {
                 this.verifying = true;
                 const data = await this.saver.flush(true);
-                this.setState({busy: false, message: data.message, termine: Boolean(data.completed)});
+                if (!this.compare) {
+                    this.setState({busy: false, message: data.message, termine: Boolean(data.completed)});
+                    return;
+                }
+                this.setState({message: `Structure : ${data.message}`, comportement: 'Comportement : test en cours…'});
+                const comportement = await this.comportement();
+                this.setState({
+                    busy: false,
+                    comportement: `Comportement : ${comportement}`,
+                    termine: Boolean(data.completed)
+                });
             } catch (error) {
                 this.setState({busy: false, message: error.message});
+            }
+        }
+
+        // Étape 2 du pilote : le jeu de l'enfant et la machine mystère tournent chacun dans une VM à part, sans rendu ;
+        // on compare ce qu'ils font pour une liste de scores. Rien n'est enregistré : c'est un retour pour l'enfant.
+        async comportement () {
+            try {
+                const [machineSb3, config, blob] = await Promise.all([
+                    fetchMystery(this.compare), fetchMysteryConfig(this.compare), this.props.vm.saveProjectSb3()
+                ]);
+                const storage = this.props.vm.runtime.storage;
+                const machine = await observer(machineSb3, config, storage);
+                const enfant = await observer(await blob.arrayBuffer(), config, storage);
+                return messageComportement(comparer(machine, enfant), config);
+            } catch (error) {
+                return 'vérification impossible pour l’instant. Ce n’est pas forcément une erreur de ton jeu : ' +
+                    'compare-le toi-même à la machine.';
+            }
+        }
+
+        // Défi : repartir du projet de départ, après confirmation. L'auto-sauvegarde est arrêtée et attendue d'abord,
+        // pour qu'aucune sauvegarde de l'ancien travail n'arrive après le remplacement.
+        async handleRestart () {
+            this.setState({confirmer: false, busy: true, message: 'On repart du projet de départ…'});
+            this.saver.stop();
+            try {
+                if (this.saver.inFlight) await this.saver.inFlight.catch(() => {});
+                this.saver.markClean();
+                const data = await restartProject(this.lesson);
+                const projet = await fetchProject(this.lesson);
+                if (projet) await this.props.vm.loadProject(projet.buffer);
+                this.saver.markClean();
+                this.setState({busy: false, message: data.message, termine: false});
+            } catch (error) {
+                this.setState({busy: false, message: error.message});
+            } finally {
+                this.saver.start();
             }
         }
 
@@ -244,6 +305,9 @@ const BridgeHOC = function (WrappedComponent) {
                             style={NOTICE_STYLE(this.state.termine)}
                         >
                             <div>{this.state.message}</div>
+                            {this.state.comportement && (
+                                <div style={{marginTop: 6}}>{this.state.comportement}</div>
+                            )}
                             {this.state.termine && (
                                 <button
                                     style={BUTTON_SUITE}
@@ -252,6 +316,31 @@ const BridgeHOC = function (WrappedComponent) {
                                     {this.challenge ? 'Voir ma preuve' : 'Continuer la leçon'}
                                 </button>
                             )}
+                        </div>
+                    )}
+                    {this.challenge && this.state.confirmer && (
+                        <div
+                            role="alertdialog"
+                            aria-label="Repartir du projet de départ"
+                            style={NOTICE_STYLE(false)}
+                        >
+                            <strong>{'Repartir du projet de départ ?'}</strong>
+                            <p style={{margin: '4px 0 8px'}}>
+                                {'Le travail enregistré pour ce défi sera remplacé par le projet de départ. ' +
+                                 'Tes défis réussis et tes preuves ne changent pas.'}
+                            </p>
+                            <button
+                                style={{...BUTTON_SUITE, marginTop: 0, marginRight: 6}}
+                                onClick={this.handleRestart}
+                            >
+                                {'Oui, remplacer mon travail'}
+                            </button>
+                            <button
+                                style={{...BUTTON_STYLE, borderColor: '#d9d9d9'}}
+                                onClick={this.handleRestartCancel}
+                            >
+                                {'Annuler'}
+                            </button>
                         </div>
                     )}
                     {this.lesson && this.state.consignes && this.state.panneau && (
@@ -288,6 +377,15 @@ const BridgeHOC = function (WrappedComponent) {
                             >
                                 {this.state.fullscreen ? this.retour : 'Plein écran'}
                             </button>
+                            {this.challenge && (
+                                <button
+                                    disabled={this.state.busy}
+                                    style={BUTTON_SECONDAIRE}
+                                    onClick={this.handleRestartAsk}
+                                >
+                                    {'Repartir du départ'}
+                                </button>
+                            )}
                             {this.state.consignes && (
                                 <button
                                     style={BUTTON_SECONDAIRE}

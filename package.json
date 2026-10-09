@@ -25,6 +25,7 @@
     "test:integration": "jest --maxWorkers=4 test[\\\\/]integration",
     "test:lint": "eslint . --ext .js,.jsx",
     "test:unit": "jest test[\\\\/]unit",
+    "test:academycode": "node --test test/academycode/*.test.mjs",
     "test:smoke": "jest --runInBand test[\\\\/]smoke",
     "watch": "webpack --watch"
   },

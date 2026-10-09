@@ -1,0 +1,9 @@
+{
+  "variables": {"score": "score", "niveau": "niveau"},
+  "scores": [0, 9, 10, 11, 20, 21, 30, 31, 40, 41, 51],
+  "caches": [41, 51],
+  "images_demarrage": 10,
+  "images_par_score": 45,
+  "pas_max": 40,
+  "budget_ms": 8000
+}

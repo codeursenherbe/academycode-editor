@@ -27,6 +27,26 @@ export const mysteryId = () => {
 };
 
 /**
+ * Dans l'atelier d'une leçon à programme mystère : /editeur/index.html?lecon=12&mystere=la-machine-qui-accelere.
+ * « Vérifier mon projet » compare alors aussi le comportement du jeu à celui de la machine.
+ * @returns {?string} le nom du programme mystère à comparer, ou null
+ */
+export const comparedMysteryId = () => {
+    const id = new URLSearchParams(window.location.search).get('mystere');
+    return id && /^[a-z0-9-]{1,60}$/.test(id) ? id : null;
+};
+
+/**
+ * @param {string} id - nom du programme mystère
+ * @returns {Promise<object>} sa configuration de vérification (scores testés, variables…), publiée à côté du .sb3
+ */
+export const fetchMysteryConfig = async id => {
+    const response = await fetch(`/scratch-mysteres/${id}.json`, {credentials: 'same-origin'});
+    if (!response.ok) throw new Error('La vérification du comportement n’est pas disponible.');
+    return response.json();
+};
+
+/**
  * @param {string} id - nom du programme mystère (voir mysteryId)
  * @returns {Promise<ArrayBuffer>} le projet .sb3 publié par AcademyCode dans /scratch-mysteres/
  */
@@ -111,4 +131,27 @@ export const fetchConsignes = async id => {
         return null;
     }
     return response.json();
+};
+
+/**
+ * Défi : remplace le travail en cours par le projet de départ (après confirmation de l'enfant).
+ * @param {string} id - « defi-{id} »
+ * @returns {Promise<object>} la réponse d'AcademyCode
+ */
+export const restartProject = async id => {
+    let response;
+    try {
+        response = await fetch(`/app/atelier/${encodeURIComponent(id)}/repartir`, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {'Accept': 'application/json', 'X-XSRF-TOKEN': xsrfToken()}
+        });
+    } catch (error) {
+        throw new Error(NETWORK_MESSAGE);
+    }
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+        throw new Error(data.message || 'On n’a pas pu repartir du projet de départ. Ton travail n’a pas changé.');
+    }
+    return data;
 };
