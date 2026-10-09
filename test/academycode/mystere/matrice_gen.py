@@ -145,8 +145,8 @@ def remonter_si_bas(P, s):
     return si
 
 
-def init(P, s):
-    return [s.b('data_setvariableto', {'VALUE': [1, [10, '0']]}, P.champ('score')), s.b('data_setvariableto', {'VALUE': [1, [10, '1']]}, P.champ('niveau'))]
+def init(P, s, niveau_depart=1):
+    return [s.b('data_setvariableto', {'VALUE': [1, [10, '0']]}, P.champ('score')), s.b('data_setvariableto', {'VALUE': [1, [10, str(niveau_depart)]]}, P.champ('niveau'))]
 
 
 def boucle(s, *corps):
@@ -159,7 +159,7 @@ def fix_boucle(s, b):
     return b
 
 
-def projet_simple(nom, op='gt', palier=None, fixe=None, glob=True, majuscule=False, sans_chute=False, au_clic=False):
+def projet_simple(nom, op='gt', palier=None, fixe=None, glob=True, majuscule=False, sans_chute=False, au_clic=False, niveau_depart=1):
     """Un seul météore qui porte tout (comme la machine), avec des variantes."""
     P = Projet({'score': ('v-score', None), 'niveau': ('v-niveau', None if glob else 'Météore')})
     if majuscule:
@@ -170,7 +170,7 @@ def projet_simple(nom, op='gt', palier=None, fixe=None, glob=True, majuscule=Fal
         corps += [chute(P, s, fixe), remonter_si_bas(P, s)]
     b = fix_boucle(s, boucle(s, *corps))
     chap = s.b('event_whenthisspriteclicked' if au_clic else 'event_whenflagclicked')
-    s.pile(chap, *init(P, s), b)
+    s.pile(chap, *init(P, s, niveau_depart), b)
     P.sprite('Météore', s)
     P.ecrire(f'{OUT}/{nom}.sb3')
 
@@ -241,6 +241,8 @@ matrice = {
     'faux-1-superieur-ou-egal': ('different', lambda n: projet_simple(n, op='ge')),
     'faux-2-palier-fige': ('different', lambda n: projet_simple(n, palier=10)),
     'faux-3-vitesse-figee': ('different', lambda n: projet_simple(n, fixe=3)),
+    # Trouvé par simulation (09/10) : la remise à « niveau 1 » avant chaque score masquait un niveau de départ différent.
+    'faux-4-niveau-de-depart': ('different', lambda n: projet_simple(n, niveau_depart=0)),
     'limite-1-regle-au-moment-du-point': ('impossible', lambda n: projet_enfant(n, regle_au_score=True)),
     'limite-2-rien-ne-tombe': ('impossible', lambda n: projet_simple(n, sans_chute=True)),
     'limite-3-demarre-au-clic': ('impossible', lambda n: projet_simple(n, au_clic=True)),

@@ -3,6 +3,7 @@
  *
  * On compare ce que FAIT le jeu de l'enfant à ce que fait la machine mystère, jamais la façon dont ses blocs sont
  * assemblés. Chaque projet tourne dans une scratch-vm à part, sans rendu, à horloge simulée, image par image :
+ * - au drapeau vert, le niveau que le jeu se donne tout seul (avant toute intervention du test) ;
  * - pour chaque score de la liste : remise à zéro (score 0, niveau 1), score imposé, quelques images, puis lecture du
  *   niveau et des pas faits vers le bas, en une image, par les objets qui tombent (sprites et clones) ;
  * - le jeu de l'enfant est jugé pareil à la machine pour un score si le niveau est le même et si au moins un objet
@@ -108,6 +109,7 @@ export const observer = async (projet, config, storage) => {
         };
         vm.greenFlag();
         images(config.images_demarrage ?? 10);
+        const depart = Number(niveau.value);
         const table = [];
         for (const s of config.scores) {
             score.value = 0;
@@ -128,7 +130,7 @@ export const observer = async (projet, config, storage) => {
                 pasPrincipal: plusFrequent(pas)
             });
         }
-        return {table};
+        return {depart, table};
     } catch (e) {
         return {impossible: 'le test a pris trop de temps'};
     } finally {
@@ -158,6 +160,11 @@ export const comparer = (machine, enfant) => {
     }
     if (enfant.table.every(l => l.pas.length === 0)) {
         return {verdict: 'impossible', raison: 'rien ne tombe dans ton jeu pendant le test'};
+    }
+    // La remise à « niveau 1 » avant chaque score masquerait un jeu qui démarre à un autre niveau (vu en simulation).
+    if (machine.depart !== enfant.depart) {
+        const ecart = {score: 0, quoi: 'depart', machine: machine.depart, enfant: enfant.depart};
+        return {verdict: 'different', ecart};
     }
     for (const [i, m] of machine.table.entries()) {
         const e = enfant.table[i];
@@ -195,6 +202,10 @@ export const message = (resultat, config) => {
             'Ce n’est pas forcément une erreur de ton jeu : compare-le toi-même à la machine.';
     }
     const {score, quoi, machine, enfant} = resultat.ecart;
+    if (quoi === 'depart') {
+        return `Juste après le drapeau vert, ton jeu affiche le niveau ${enfant} ; la machine, le niveau ${machine}. ` +
+            'Compare-les au tout début de la partie.';
+    }
     if ((config.caches ?? []).includes(score)) {
         return 'Pour les scores que tu as sans doute essayés, ton jeu et la machine sont d’accord. ' +
             `Mais pour un score plus grand, ${quoi === 'niveau' ? 'le niveau' : 'la vitesse'} n’est pas la même. ` +

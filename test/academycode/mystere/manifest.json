@@ -9,6 +9,7 @@
  "faux-1-superieur-ou-egal": "different",
  "faux-2-palier-fige": "different",
  "faux-3-vitesse-figee": "different",
+ "faux-4-niveau-de-depart": "different",
  "limite-1-regle-au-moment-du-point": "impossible",
  "limite-2-rien-ne-tombe": "impossible",
  "limite-3-demarre-au-clic": "impossible",
