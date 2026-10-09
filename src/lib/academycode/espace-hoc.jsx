@@ -23,6 +23,16 @@ const BAR_STYLE = {
     alignItems: 'center',
     font: '600 14px sans-serif'
 };
+// Présentation : la scène est claire, le bouton est donc foncé (le style blanc des barres serait invisible).
+const PRESENTATION_BUTTON_STYLE = {
+    background: 'rgba(15, 23, 42, .78)',
+    color: '#fff',
+    border: 'none',
+    borderRadius: 999,
+    padding: '8px 16px',
+    font: 'inherit',
+    cursor: 'pointer'
+};
 const BADGE_STYLE = {
     padding: '6px 12px',
     borderRadius: 999,
@@ -182,12 +192,13 @@ const EspaceHOC = function (WrappedComponent) {
             if (contexte.mode !== 'presentation') {
                 fetchEspaceConsignes(contexte.path).then(consignes => this.setState({consignes}));
             }
+            // Plein écran (bouton de l'éditeur) : suivi dans les trois modes, pour que le libellé devienne « Quitter… ».
+            document.addEventListener('fullscreenchange', this.handleFullscreenChange);
             if (contexte.mode !== 'copie') return;
             this.saver.markClean();
             this.props.vm.on('PROJECT_CHANGED', this.handleChanged);
             window.addEventListener('message', this.handleMessage);
             document.addEventListener('visibilitychange', this.handleHidden);
-            document.addEventListener('fullscreenchange', this.handleFullscreenChange);
             window.addEventListener('pagehide', this.handleHidden);
             this.saver.start();
         }
@@ -291,6 +302,13 @@ const EspaceHOC = function (WrappedComponent) {
                     onClick={this.handlePanneau}
                 >{panneau ? 'Cacher les consignes' : 'Consignes'}</button>
             );
+            // Même bouton dans les trois modes (référence, ma version, présentation) : il devient « Quitter le plein écran ».
+            const boutonPleinEcran = style => (
+                <button
+                    style={style}
+                    onClick={this.handleFullscreen}
+                >{fullscreen ? 'Quitter le plein écran' : 'Plein écran'}</button>
+            );
             const positionPanneau = place ? {left: place.x, top: place.y} : {right: 540, top: 92};
             return (
                 <React.Fragment>
@@ -302,6 +320,7 @@ const EspaceHOC = function (WrappedComponent) {
                         >
                             <span style={BADGE_STYLE}>{'Référence officielle · lecture seule'}</span>
                             {boutonConsignes}
+                            {boutonPleinEcran(BUTTON_STYLE)}
                         </div>
                     )}
                     {contexte.mode === 'copie' && (
@@ -316,10 +335,12 @@ const EspaceHOC = function (WrappedComponent) {
                                 style={BUTTON_STYLE}
                                 onClick={this.handleRestartAsk}
                             >{'Repartir de la référence'}</button>
-                            <button
-                                style={BUTTON_STYLE}
-                                onClick={this.handleFullscreen}
-                            >{fullscreen ? 'Quitter le plein écran' : 'Plein écran'}</button>
+                            {boutonPleinEcran(BUTTON_STYLE)}
+                        </div>
+                    )}
+                    {contexte.mode === 'presentation' && (
+                        <div style={{...BAR_STYLE, top: 'auto', bottom: 8}}>
+                            {boutonPleinEcran(PRESENTATION_BUTTON_STYLE)}
                         </div>
                     )}
                     {contexte.mode === 'presentation' && message && (
