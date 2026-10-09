@@ -26,3 +26,12 @@ En production : envoyer le contenu de `build/` (hors `.map`) par FTP dans `publi
 ## Mise à jour depuis l'amont
 
 `git fetch upstream && git merge upstream/develop`, puis refaire `npm run assets`, `npm run test:unit` et la recette de la tâche 15 du plan. Les fichiers `src/lib/libraries/*.json` sont volontairement filtrés : attendre des conflits à cet endroit.
+
+## Mode « Espace Animateur » (branche `espace-animateurs`, 09/10/2026)
+
+Même build, deux contextes. `?projet=/ressources/<id>/scratch/<1-4>/(reference|copie)&mode=lecture|copie|presentation`
+active `src/lib/academycode/espace-hoc.jsx` : référence en lecture seule, copie personnelle enregistrée toutes les 30 s,
+ou lecteur de présentation (scène seule). Le chemin est validé strictement (`espace-api.js`) ; sans paramètres valides,
+rien ne change pour AcademyCode (`?lecon=`, `?lecteur=`). Échange avec la page hôte : `enregistrer` / `enregistre` (postMessage).
+Le menu Fichier reste vidé : l'import/export est géré par l'application hôte, avec ses propres droits côté serveur.
+Tests : `npx jest --testPathPattern "unit.academycode"`.
