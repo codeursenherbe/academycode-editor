@@ -4,6 +4,7 @@ import {connect} from 'react-redux';
 import VM from 'scratch-vm';
 
 import {getIsShowingProject} from '../../reducers/project-state';
+import {setFullScreen} from '../../reducers/mode';
 import AutoSaver from './autosave.js';
 import {NETWORK_MESSAGE} from './api.js';
 import {espaceContext, fetchEspaceProject, putEspaceProject, restartEspace} from './espace-api.js';
@@ -96,6 +97,9 @@ const EspaceHOC = function (WrappedComponent) {
         componentDidUpdate () {
             if (!this.started && this.props.ready) {
                 this.started = true;
+                // Présentation (vidéoprojection) : la scène occupe tout le cadre dès l'ouverture ; le bouton de la
+                // scène permet de revenir à la petite taille.
+                if (contexte.mode === 'presentation') this.props.onFullScreen();
                 this.begin();
             }
         }
@@ -184,6 +188,7 @@ const EspaceHOC = function (WrappedComponent) {
                 /* eslint-disable no-unused-vars */
                 vm,
                 ready,
+                onFullScreen,
                 /* eslint-enable no-unused-vars */
                 ...componentProps
             } = this.props;
@@ -248,6 +253,7 @@ const EspaceHOC = function (WrappedComponent) {
     }
 
     Espace.propTypes = {
+        onFullScreen: PropTypes.func,
         ready: PropTypes.bool,
         vm: PropTypes.instanceOf(VM).isRequired
     };
@@ -257,7 +263,11 @@ const EspaceHOC = function (WrappedComponent) {
         ready: getIsShowingProject(state.scratchGui.projectState.loadingState)
     });
 
-    return connect(mapStateToProps, () => ({}))(Espace);
+    const mapDispatchToProps = dispatch => ({
+        onFullScreen: () => dispatch(setFullScreen(true))
+    });
+
+    return connect(mapStateToProps, mapDispatchToProps)(Espace);
 };
 
 export default EspaceHOC;
