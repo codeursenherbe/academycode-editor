@@ -119,7 +119,7 @@ const BridgeHOC = function (WrappedComponent) {
             this.saver = new AutoSaver({
                 save: () => this.save(),
                 periodMs: PERIOD_MS,
-                onError: () => this.setState({message: NETWORK_MESSAGE})
+                onError: error => this.setState({message: error.message || NETWORK_MESSAGE})
             });
             this.handleChanged = () => this.saver.markDirty();
             this.handleHidden = () => {

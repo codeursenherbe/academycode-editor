@@ -22,3 +22,10 @@ test('le point d\'entrée n\'a ni logo cliquable, ni sac à dos, ni confirmation
         expect(entry).not.toContain(text);
     });
 });
+
+test('une sauvegarde automatique refusée affiche le motif donné par le serveur, pas « connexion coupée »', () => {
+    // Trouvé lors des parcours simulés du 09/10 : au quota de la semaine atteint, le serveur répond 409 avec son message ;
+    // la sauvegarde automatique suivante l'écrasait par « La connexion est coupée, on réessaie tout seul ».
+    const bridge = read('src/lib/academycode/bridge-hoc.jsx');
+    expect(bridge).toMatch(/onError: error => this\.setState\(\{message: error\.message \|\| NETWORK_MESSAGE\}\)/);
+});
