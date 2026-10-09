@@ -302,7 +302,7 @@ const EspaceHOC = function (WrappedComponent) {
                     onClick={this.handlePanneau}
                 >{panneau ? 'Cacher les consignes' : 'Consignes'}</button>
             );
-            // Même bouton dans les trois modes (référence, ma version, présentation) : il devient « Quitter le plein écran ».
+            // Même bouton dans les trois modes ; il devient « Quitter le plein écran ».
             const boutonPleinEcran = style => (
                 <button
                     style={style}
