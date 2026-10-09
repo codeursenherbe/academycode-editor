@@ -1,5 +1,7 @@
 /** @jest-environment jsdom */
-import {espaceContext, fetchEspaceProject, putEspaceProject, restartEspace} from '../../../src/lib/academycode/espace-api.js';
+import {
+    espaceContext, fetchEspaceProject, putEspaceProject, restartEspace, consignesUrl, fetchEspaceConsignes
+} from '../../../src/lib/academycode/espace-api.js';
 import {NETWORK_MESSAGE} from '../../../src/lib/academycode/api.js';
 
 // Le jsdom de Jest 21 n'expose pas URLSearchParams (les navigateurs, si) : celui de Node est identique.
@@ -96,4 +98,20 @@ test('restartEspace appelle …/copie/repartir en POST avec le jeton', async () 
         method: 'POST',
         headers: expect.objectContaining({'X-XSRF-TOKEN': 'abc=='})
     }));
+});
+
+test('l’adresse des consignes se déduit de la référence ou de la copie, de la même étape', () => {
+    expect(consignesUrl('/ressources/12/scratch/2/copie')).toBe('/ressources/12/scratch/2/consignes');
+    expect(consignesUrl('/ressources/119/scratch/4/reference')).toBe('/ressources/119/scratch/4/consignes');
+});
+
+test('fetchEspaceConsignes renvoie les consignes, ou null sans jamais gêner l’éditeur', async () => {
+    const consignes = {titre: 'Étape', objectif: 'x', etapes: ['a'], criteres: ['b']};
+    global.fetch = jest.fn(() => Promise.resolve({ok: true, json: () => Promise.resolve(consignes)}));
+    expect(await fetchEspaceConsignes('/ressources/12/scratch/2/copie')).toEqual(consignes);
+    expect(global.fetch.mock.calls[0][0]).toBe('/ressources/12/scratch/2/consignes');
+    global.fetch = jest.fn(() => Promise.resolve({ok: false}));
+    expect(await fetchEspaceConsignes('/ressources/12/scratch/2/copie')).toBeNull();
+    global.fetch = jest.fn(() => Promise.reject(new TypeError('Failed to fetch')));
+    expect(await fetchEspaceConsignes('/ressources/12/scratch/2/copie')).toBeNull();
 });

@@ -91,3 +91,26 @@ export const restartEspace = async path => {
     }
     return data;
 };
+
+/**
+ * @param {string} path - chemin de la référence ou de la copie (…/reference ou …/copie)
+ * @returns {string} chemin de l'API des consignes de la même étape
+ */
+export const consignesUrl = path => path.replace(/\/(reference|copie)$/, '/consignes');
+
+/**
+ * Consignes de l'étape (titre, objectif, déroulé, critères de fin), lues par l'Espace dans la fiche pédagogique.
+ * @param {string} path - chemin validé (espaceContext)
+ * @returns {Promise<?object>} {titre, objectif, etapes[], criteres[]}, ou null si indisponibles
+ */
+export const fetchEspaceConsignes = async path => {
+    try {
+        const response = await fetch(consignesUrl(path), {
+            credentials: 'same-origin',
+            headers: {Accept: 'application/json'}
+        });
+        return response.ok ? await response.json() : null;
+    } catch (error) {
+        return null;
+    }
+};
