@@ -118,6 +118,9 @@ const EspaceHOC = function (WrappedComponent) {
                 const projet = await fetchEspaceProject(contexte.path);
                 if (projet) {
                     await this.props.vm.loadProject(projet.buffer);
+                    // Sans redessin, la scène garde l'image du projet par défaut (le chat de Scratch) jusqu'au premier
+                    // drapeau vert, surtout en présentation plein cadre.
+                    this.props.vm.runtime.requestRedraw();
                     if (contexte.mode === 'copie' && !projet.depart) {
                         this.setState({message: 'Ta version a été rechargée.'});
                     }
@@ -166,6 +169,7 @@ const EspaceHOC = function (WrappedComponent) {
                 const data = await restartEspace(contexte.path);
                 const projet = await fetchEspaceProject(contexte.path);
                 if (projet) await this.props.vm.loadProject(projet.buffer);
+                this.props.vm.runtime.requestRedraw();
                 this.saver.markClean();
                 this.setState({busy: false, message: data.message});
             } catch (error) {
