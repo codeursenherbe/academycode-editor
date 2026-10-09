@@ -118,9 +118,7 @@ const EspaceHOC = function (WrappedComponent) {
                 const projet = await fetchEspaceProject(contexte.path);
                 if (projet) {
                     await this.props.vm.loadProject(projet.buffer);
-                    // Sans redessin, la scène garde l'image du projet par défaut (le chat de Scratch) jusqu'au premier
-                    // drapeau vert, surtout en présentation plein cadre.
-                    this.props.vm.runtime.requestRedraw();
+                    this.redraw();
                     if (contexte.mode === 'copie' && !projet.depart) {
                         this.setState({message: 'Ta version a été rechargée.'});
                     }
@@ -136,6 +134,16 @@ const EspaceHOC = function (WrappedComponent) {
             document.addEventListener('fullscreenchange', this.handleFullscreenChange);
             window.addEventListener('pagehide', this.handleHidden);
             this.saver.start();
+        }
+
+        // Sans dessin explicite, la scène garde l'image du projet par défaut (le chat de Scratch) jusqu'au premier
+        // drapeau vert : la VM n'est pas en boucle en présentation. Deuxième dessin après le redimensionnement plein cadre.
+        redraw () {
+            const {vm} = this.props;
+            vm.runtime.requestRedraw();
+            if (!vm.renderer) return;
+            vm.renderer.draw();
+            setTimeout(() => vm.renderer.draw(), 400);
         }
 
         async save () {
@@ -169,7 +177,7 @@ const EspaceHOC = function (WrappedComponent) {
                 const data = await restartEspace(contexte.path);
                 const projet = await fetchEspaceProject(contexte.path);
                 if (projet) await this.props.vm.loadProject(projet.buffer);
-                this.props.vm.runtime.requestRedraw();
+                this.redraw();
                 this.saver.markClean();
                 this.setState({busy: false, message: data.message});
             } catch (error) {
