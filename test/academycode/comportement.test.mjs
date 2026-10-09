@@ -51,3 +51,12 @@ test('l’horloge de la page est rendue après le test, même en cas d’erreur'
     await observer(lire('juste-5-clones-attentes-hasard.sb3'), config, new ScratchStorage());
     assert.equal(Date.now, avant);
 });
+
+test('une variable introuvable : le message dit quoi faire, sans « pas forcément une erreur »', async () => {
+    // Trouvé lors des parcours simulés du 09/10 : la leçon exige ce nom ; dire « pas forcément une erreur » la contredisait.
+    const machine = await observer(lire('machine.sb3'), config, new ScratchStorage());
+    const r = comparer(machine, await observer(lire('limite-5-sans-variable-niveau.sb3'), config, new ScratchStorage()));
+    assert.equal(r.verdict, 'impossible');
+    assert.doesNotMatch(message(r, config), /pas forcément une erreur/);
+    assert.match(message(r, config), /nom exact/);
+});

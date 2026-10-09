@@ -230,6 +230,16 @@ def projet_enfant(nom, message=False, attente_boucle=False, regle_au_score=False
     P.ecrire(f'{OUT}/{nom}.sb3')
 
 
+def projet_sans_niveau(nom):
+    """Le jeu tel qu'il est avant la leçon : le météore tombe, le score existe, pas encore de variable « niveau »."""
+    P = Projet({'score': ('v-score', None)})
+    s = Script()
+    b = fix_boucle(s, boucle(s, s.b('motion_changeyby', {'DY': nombre(-2)}), remonter_si_bas(P, s)))
+    s.pile(s.b('event_whenflagclicked'), s.b('data_setvariableto', {'VALUE': [1, [10, '0']]}, P.champ('score')), b)
+    P.sprite('Météore', s)
+    P.ecrire(f'{OUT}/{nom}.sb3')
+
+
 matrice = {
     'juste-1-comme-la-machine': ('conforme', lambda n: projet_simple(n)),
     'juste-2-non-inferieur-plus-un': ('conforme', lambda n: projet_simple(n, op='non-inf-plus-1')),
@@ -247,6 +257,7 @@ matrice = {
     'limite-2-rien-ne-tombe': ('impossible', lambda n: projet_simple(n, sans_chute=True)),
     'limite-3-demarre-au-clic': ('impossible', lambda n: projet_simple(n, au_clic=True)),
     'limite-4-deux-variables-score': ('impossible', lambda n: projet_enfant(n, deux_scores=True)),
+    'limite-5-sans-variable-niveau': ('impossible', projet_sans_niveau),
 }
 for nom, (attendu, f) in matrice.items():
     f(nom)

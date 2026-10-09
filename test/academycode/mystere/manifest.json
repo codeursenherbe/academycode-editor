@@ -13,5 +13,6 @@
  "limite-1-regle-au-moment-du-point": "impossible",
  "limite-2-rien-ne-tombe": "impossible",
  "limite-3-demarre-au-clic": "impossible",
- "limite-4-deux-variables-score": "impossible"
+ "limite-4-deux-variables-score": "impossible",
+ "limite-5-sans-variable-niveau": "impossible"
 }

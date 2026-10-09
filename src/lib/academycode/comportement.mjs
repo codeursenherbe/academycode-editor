@@ -76,7 +76,7 @@ export const observer = async (projet, config, storage) => {
     const raison = raisonVariable(vScore, noms.score) ?? raisonVariable(vNiveau, noms.niveau);
     if (raison) {
         vm.quit();
-        return {impossible: raison};
+        return {impossible: raison, manque: vScore.length === 0 || (vScore.length === 1 && vNiveau.length === 0)};
     }
     const score = vScore[0];
     const niveau = vNiveau[0];
@@ -151,7 +151,7 @@ const RAISON_NIVEAU_FIGE = 'ton niveau ne change jamais pendant le test, quel qu
  * @returns {object} {verdict: conforme | different | impossible, ecart?, raison?}
  */
 export const comparer = (machine, enfant) => {
-    if (enfant.impossible) return {verdict: 'impossible', raison: enfant.impossible};
+    if (enfant.impossible) return {verdict: 'impossible', raison: enfant.impossible, manque: enfant.manque};
     if (machine.impossible) return {verdict: 'impossible', raison: 'la machine mystère ne s’est pas laissée observer'};
     const machineMonte = machine.table.some(l => l.niveau > 1);
     // Un niveau qui ne bouge jamais quand on impose un score : on ne peut pas savoir pourquoi, on ne conclut pas.
@@ -196,6 +196,11 @@ export const message = (resultat, config) => {
         return `Pour les ${config.scores.length} situations testées (des scores de ${min} à ${max}), ` +
             'ton jeu réagit comme la machine mystère : mêmes niveaux, même vitesse. ' +
             'Le test ne couvre pas tout, mais ta règle tient.';
+    }
+    if (resultat.verdict === 'impossible' && resultat.manque) {
+        // La leçon demande ce nom : ici, ce n'est pas « peut-être une erreur », c'est ce qui manque pour comparer.
+        return `Vérification impossible : ${resultat.raison}. C’est sous ce nom exact que le test la compare à la ` +
+            'machine : vérifie son nom, ou crée-la.';
     }
     if (resultat.verdict === 'impossible') {
         return `Vérification impossible : ${resultat.raison}. ` +
