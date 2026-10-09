@@ -75,6 +75,8 @@ const BUTTON_STYLE = {
     cursor: 'pointer'
 };
 const BUTTON_SUITE = {...BUTTON_STYLE, marginTop: 8, background: '#3aa76d', borderColor: '#3aa76d', color: '#fff'};
+// Leçon terminée mais comportement non conforme (ou non vérifiable) : on peut continuer, sans signal de réussite.
+const BUTTON_SUITE_NEUTRE = {...BUTTON_STYLE, marginTop: 8, borderColor: '#d9d9d9'};
 const BUTTON_SECONDAIRE = {
     ...BUTTON_STYLE,
     background: 'transparent',
@@ -111,7 +113,8 @@ const BridgeHOC = function (WrappedComponent) {
                 consignes: null,
                 panneau: !this.challenge,
                 termine: false,
-                confirmer: false
+                confirmer: false,
+                conforme: null
             };
             this.saver = new AutoSaver({
                 save: () => this.save(),
@@ -225,7 +228,7 @@ const BridgeHOC = function (WrappedComponent) {
         }
 
         async handleVerify () {
-            this.setState({busy: true, message: 'Vérification en cours…', comportement: ''});
+            this.setState({busy: true, message: 'Vérification en cours…', comportement: '', conforme: null});
             try {
                 this.verifying = true;
                 const data = await this.saver.flush(true);
@@ -234,15 +237,22 @@ const BridgeHOC = function (WrappedComponent) {
                     return;
                 }
                 this.setState({message: `Structure : ${data.message}`, comportement: 'Comportement : test en cours…'});
-                const comportement = await this.comportement();
+                const {texte, conforme} = await this.comportement();
                 this.setState({
                     busy: false,
-                    comportement: `Comportement : ${comportement}`,
+                    comportement: `Comportement : ${texte}`,
+                    conforme,
                     termine: Boolean(data.completed)
                 });
             } catch (error) {
                 this.setState({busy: false, message: error.message});
             }
+        }
+
+        // Vert seulement si tout ce qui a été vérifié va bien : dans une leçon à programme mystère, la leçon peut être
+        // terminée (structure et quiz) alors que le comportement diffère ; le message ne doit pas dire le contraire.
+        vert () {
+            return this.state.termine && (!this.compare || this.state.conforme === true);
         }
 
         // Étape 2 du pilote : le jeu de l'enfant et la machine mystère tournent chacun dans une VM à part, sans rendu ;
@@ -255,10 +265,14 @@ const BridgeHOC = function (WrappedComponent) {
                 const storage = this.props.vm.runtime.storage;
                 const machine = await observer(machineSb3, config, storage);
                 const enfant = await observer(await blob.arrayBuffer(), config, storage);
-                return messageComportement(comparer(machine, enfant), config);
+                const resultat = comparer(machine, enfant);
+                return {texte: messageComportement(resultat, config), conforme: resultat.verdict === 'conforme'};
             } catch (error) {
-                return 'vérification impossible pour l’instant. Ce n’est pas forcément une erreur de ton jeu : ' +
-                    'compare-le toi-même à la machine.';
+                return {
+                    texte: 'vérification impossible pour l’instant. Ce n’est pas forcément une erreur de ton jeu : ' +
+                        'compare-le toi-même à la machine.',
+                    conforme: false
+                };
             }
         }
 
@@ -302,7 +316,7 @@ const BridgeHOC = function (WrappedComponent) {
                     {this.lesson && this.state.message && (
                         <div
                             role="status"
-                            style={NOTICE_STYLE(this.state.termine)}
+                            style={NOTICE_STYLE(this.vert())}
                         >
                             <div>{this.state.message}</div>
                             {this.state.comportement && (
@@ -310,7 +324,7 @@ const BridgeHOC = function (WrappedComponent) {
                             )}
                             {this.state.termine && (
                                 <button
-                                    style={BUTTON_SUITE}
+                                    style={this.vert() ? BUTTON_SUITE : BUTTON_SUITE_NEUTRE}
                                     onClick={this.handleSuite}
                                 >
                                     {this.challenge ? 'Voir ma preuve' : 'Continuer la leçon'}
