@@ -8,7 +8,7 @@ const MOTIF = '__webpack_require__.p = "/";';
 module.exports = function cheminWorkerStorage (source) {
     const occurrences = source.split(MOTIF).length - 1;
     if (occurrences !== 1) {
-        throw new Error(`chemin-worker-storage : ${occurrences} occurrence(s) de ${MOTIF} dans scratch-storage (1 attendue)`);
+        throw new Error(`chemin-worker-storage : ${occurrences} occurrence(s) de ${MOTIF} (1 attendue)`);
     }
     return source.replace(MOTIF, '__webpack_require__.p = "";');
 };
