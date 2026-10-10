@@ -76,6 +76,14 @@ const baseConfig = new ScratchWebpackConfigBuilder(
                 context: 'node_modules/scratch-vm/dist/web',
                 from: 'extension-worker.{js,js.map}',
                 noErrorOnMissing: true
+            },
+            {
+                // Worker de téléchargement des assets de scratch-storage : son bundle le cherche dans chunks/ à côté de
+                // gui.js. Absent, toute image non préchargée (bibliothèques) attend sans fin (constaté le 10/10/2026).
+                context: 'node_modules/scratch-storage/dist/web/chunks',
+                from: 'fetch-worker.*.js',
+                to: 'chunks',
+                noErrorOnMissing: true
             }
         ]
     }));
