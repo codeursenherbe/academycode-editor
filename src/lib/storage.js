@@ -2,6 +2,17 @@ import {ScratchStorage} from 'scratch-storage';
 
 import defaultProject from './default-project';
 
+// Adresse absolue : scratch-storage télécharge les assets dans un worker créé depuis une URL blob:, où un chemin
+// relatif (« /editeur/static/lib-assets/… ») ne se résout pas et le chargement reste bloqué (constaté le 10/10/2026 :
+// lutin de bibliothèque jamais ajouté). Sans effet sur une adresse déjà absolue.
+export const absolu = (chemin, base = typeof window === 'undefined' ? '' : window.location.href) => {
+    try {
+        return new URL(chemin, base).href;
+    } catch (e) {
+        return chemin; // pas de base exploitable (tests) : chemin tel quel
+    }
+};
+
 /**
  * Wrapper for ScratchStorage which adds default web sources.
  * @todo make this more configurable
@@ -29,7 +40,7 @@ class Storage extends ScratchStorage {
         );
         this.addWebStore(
             [this.AssetType.Sound],
-            asset => `static/extension-assets/scratch3_music/${asset.assetId}.${asset.dataFormat}`
+            asset => absolu(`static/extension-assets/scratch3_music/${asset.assetId}.${asset.dataFormat}`)
         );
     }
     setProjectHost (projectHost) {
@@ -56,7 +67,7 @@ class Storage extends ScratchStorage {
         };
     }
     setAssetHost (assetHost) {
-        this.assetHost = assetHost;
+        this.assetHost = absolu(assetHost).replace(/\/$/, '');
     }
     getAssetGetConfig (asset) {
         return `${this.assetHost}/${asset.assetId}.${asset.dataFormat}`;
