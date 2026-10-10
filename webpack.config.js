@@ -45,6 +45,11 @@ const baseConfig = new ScratchWebpackConfigBuilder(
         }
     })
     .addModuleRule({
+        // Worker de scratch-storage cherché à côté de l'éditeur, pas à la racine du site : voir le loader.
+        test: /scratch-storage[\\/]dist[\\/]web[\\/]scratch-storage\.js$/,
+        use: path.resolve(__dirname, 'scripts/chemin-worker-storage.js')
+    })
+    .addModuleRule({
         test: /\.(svg|png|wav|mp3|gif|jpg)$/,
         resourceQuery: /^$/, // reject any query string
         type: 'asset' // let webpack decide on the best type of asset
