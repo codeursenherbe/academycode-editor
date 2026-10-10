@@ -35,3 +35,10 @@ ou lecteur de présentation (scène seule). Le chemin est validé strictement (`
 rien ne change pour AcademyCode (`?lecon=`, `?lecteur=`). Échange avec la page hôte : `enregistrer` / `enregistre` (postMessage).
 Le menu Fichier reste vidé : l'import/export est géré par l'application hôte, avec ses propres droits côté serveur.
 Tests : `npx jest --testPathPattern "unit.academycode"`.
+
+Bibliothèque « Codeurs en Herbe » (10/10/2026, mode Espace seulement) : `src/lib/academycode/bibliotheque-espace.jsx`
+ajoute en tête des bibliothèques (lutins, arrière-plans, costumes) les dessins de l'Espace, lus dans
+`/editeur/static/bibliotheque-ceh.json` (généré par l'Espace, `scripts/scratch/bibliotheque-editeur.mjs`). Hors mode
+Espace : aucune requête, aucune catégorie en plus. Correctifs du même jour, valables partout : adresses d'assets
+absolues (`src/lib/storage.js`) et worker `fetch-worker` de scratch-storage copié dans `chunks/` ; son bundle le cherche
+à la racine du site (`/chunks/`), que l'hôte doit donc servir aussi.
