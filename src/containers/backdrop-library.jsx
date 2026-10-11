@@ -7,6 +7,7 @@ import VM from 'scratch-vm';
 import backdropLibraryContent from '../lib/libraries/backdrops.json';
 import backdropTags from '../lib/libraries/backdrop-tags';
 import LibraryComponent from '../components/library/library.jsx';
+import {avecBibliothequeAcademyCode} from '../lib/academycode/bibliotheque-academycode.jsx';
 
 const messages = defineMessages({
     libraryTitle: {
@@ -38,9 +39,9 @@ class BackdropLibrary extends React.Component {
     render () {
         return (
             <LibraryComponent
-                data={backdropLibraryContent}
+                data={this.props.data}
                 id="backdropLibrary"
-                tags={backdropTags}
+                tags={this.props.tags}
                 title={this.props.intl.formatMessage(messages.libraryTitle)}
                 onItemSelected={this.handleItemSelect}
                 onRequestClose={this.props.onRequestClose}
@@ -50,9 +51,14 @@ class BackdropLibrary extends React.Component {
 }
 
 BackdropLibrary.propTypes = {
+    data: PropTypes.arrayOf(PropTypes.object).isRequired,
+    tags: PropTypes.arrayOf(PropTypes.object).isRequired,
     intl: intlShape.isRequired,
     onRequestClose: PropTypes.func,
     vm: PropTypes.instanceOf(VM).isRequired
 };
 
-export default injectIntl(BackdropLibrary);
+// Bibliothèque enrichie d'AcademyCode (lot L8) : éléments d'origine en tête, catalogue chargé à l'ouverture.
+export default avecBibliothequeAcademyCode('backdrops', backdropLibraryContent, backdropTags)(
+    injectIntl(BackdropLibrary)
+);

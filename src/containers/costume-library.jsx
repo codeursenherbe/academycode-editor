@@ -7,6 +7,7 @@ import VM from 'scratch-vm';
 import costumeLibraryContent from '../lib/libraries/costumes.json';
 import spriteTags from '../lib/libraries/sprite-tags';
 import LibraryComponent from '../components/library/library.jsx';
+import {avecBibliothequeAcademyCode} from '../lib/academycode/bibliotheque-academycode.jsx';
 
 const messages = defineMessages({
     libraryTitle: {
@@ -37,9 +38,9 @@ class CostumeLibrary extends React.PureComponent {
     render () {
         return (
             <LibraryComponent
-                data={costumeLibraryContent}
+                data={this.props.data}
                 id="costumeLibrary"
-                tags={spriteTags}
+                tags={this.props.tags}
                 title={this.props.intl.formatMessage(messages.libraryTitle)}
                 onItemSelected={this.handleItemSelected}
                 onRequestClose={this.props.onRequestClose}
@@ -49,9 +50,12 @@ class CostumeLibrary extends React.PureComponent {
 }
 
 CostumeLibrary.propTypes = {
+    data: PropTypes.arrayOf(PropTypes.object).isRequired,
+    tags: PropTypes.arrayOf(PropTypes.object).isRequired,
     intl: intlShape.isRequired,
     onRequestClose: PropTypes.func,
     vm: PropTypes.instanceOf(VM).isRequired
 };
 
-export default injectIntl(CostumeLibrary);
+// Bibliothèque enrichie d'AcademyCode (lot L8) : éléments d'origine en tête, catalogue chargé à l'ouverture.
+export default avecBibliothequeAcademyCode('costumes', costumeLibraryContent, spriteTags)(injectIntl(CostumeLibrary));

@@ -1,0 +1,188 @@
+{
+ "note": "Sélection validée par lot L7 (docs/editeurs/l7-bibliotheque-selection-2026-10-11.md dans AcademyCode). Dessins originaux Codeurs en Herbe (Espace Animateurs). Régénérer : node scripts/bibliotheque-academycode.mjs <dossier static de l Espace>.",
+ "etiquettes": {
+  "personnages": "Personnages",
+  "animaux": "Animaux",
+  "objets": "Objets",
+  "decors": "Décors d'histoire",
+  "espace": "Espace et aventure",
+  "sports": "Sports et jeux"
+ },
+ "sprites": {
+  "personnages": [
+   "garçon casquette",
+   "garçon lunettes",
+   "fille tresses",
+   "fille couettes",
+   "roi",
+   "reine",
+   "chevalier",
+   "princesse aventurière",
+   "pirate",
+   "magicien",
+   "sorcière",
+   "monstre gentil",
+   "fantôme",
+   "astronaute fille",
+   "astronaute garçon",
+   "exploratrice",
+   "explorateur",
+   "robot",
+   "robot roues",
+   "gros alien",
+   "chanteuse",
+   "footballeuse",
+   "basketteur",
+   "joueuse tennis",
+   "coureuse",
+   "skateur",
+   "avatar content",
+   "avatar surpris"
+  ],
+  "animaux": [
+   "chat",
+   "chien",
+   "lion",
+   "coq",
+   "loup",
+   "souris",
+   "poisson",
+   "tortue",
+   "grenouille",
+   "pingouin",
+   "chouette",
+   "oiseau bleu",
+   "papillon",
+   "abeille",
+   "coccinelle",
+   "dragon"
+  ],
+  "objets": [
+   "clé",
+   "coffre",
+   "diamant",
+   "piece",
+   "gâteau",
+   "banane",
+   "fraise",
+   "glace",
+   "pizza",
+   "guitare",
+   "piano",
+   "note musique",
+   "couronne",
+   "chapeau",
+   "parapluie",
+   "citrouille",
+   "bulle dialogue",
+   "bulle pensée"
+  ],
+  "espace": [
+   "fusée",
+   "vaisseau",
+   "soucoupe",
+   "astéroïde",
+   "planète anneaux",
+   "satellite",
+   "comète",
+   "étoile filante",
+   "montgolfière",
+   "hélicoptère",
+   "avion",
+   "bateau",
+   "champignon rebond",
+   "bloc briques"
+  ],
+  "sports": [
+   "ballon",
+   "ballon basket",
+   "balle tennis",
+   "raquette tennis",
+   "but foot",
+   "panier basket",
+   "trophée",
+   "médaille",
+   "chronomètre",
+   "voiture course",
+   "cible",
+   "étoile bonus"
+  ]
+ },
+ "decors": {
+  "decors": [
+   "forêt",
+   "forêt enchantée",
+   "château",
+   "grotte",
+   "village",
+   "ville",
+   "chambre enfant",
+   "lac",
+   "montagne",
+   "désert",
+   "plage",
+   "fond marin",
+   "jungle",
+   "hiver enneigé",
+   "jardin fleuri",
+   "parc automne",
+   "fête foraine"
+  ],
+  "espace": [
+   "espace",
+   "surface lune",
+   "station spatiale"
+  ],
+  "sports": [
+   "stade foot",
+   "court tennis"
+  ]
+ },
+ "noms": {
+  "piece": "pièce"
+ },
+ "existants": {
+  "Cat": [
+   "animaux"
+  ],
+  "Dog1": [
+   "animaux"
+  ],
+  "Fish": [
+   "animaux"
+  ],
+  "Butterfly 1": [
+   "animaux"
+  ],
+  "Ghost": [
+   "personnages"
+  ],
+  "Ball": [
+   "sports"
+  ],
+  "Apple": [
+   "objets"
+  ],
+  "Bananas": [
+   "objets"
+  ],
+  "Star": [
+   "objets"
+  ],
+  "Balloon1": [
+   "objets"
+  ],
+  "Woods": [
+   "decors"
+  ],
+  "Beach Malibu": [
+   "decors"
+  ],
+  "Blue Sky": [
+   "decors"
+  ],
+  "Space": [
+   "espace"
+  ]
+ }
+}

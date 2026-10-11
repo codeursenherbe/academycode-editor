@@ -83,6 +83,15 @@ const baseConfig = new ScratchWebpackConfigBuilder(
                 noErrorOnMissing: true
             },
             {
+                // Bibliothèque enrichie d'AcademyCode (lot L8) : catalogue et dessins, versionnés dans le dépôt.
+                from: 'bibliotheque-academycode/catalogue.json',
+                to: 'static/bibliotheque-academycode.json'
+            },
+            {
+                from: 'bibliotheque-academycode/assets',
+                to: 'static/lib-assets'
+            },
+            {
                 // Worker de téléchargement des assets de scratch-storage : son bundle le cherche dans chunks/ à côté de
                 // gui.js. Absent, toute image non préchargée (bibliothèques) attend sans fin (constaté le 10/10/2026).
                 context: 'node_modules/scratch-storage/dist/web/chunks',

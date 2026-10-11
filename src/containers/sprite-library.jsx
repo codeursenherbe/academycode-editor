@@ -9,6 +9,7 @@ import randomizeSpritePosition from '../lib/randomize-sprite-position';
 import spriteTags from '../lib/libraries/sprite-tags';
 
 import LibraryComponent from '../components/library/library.jsx';
+import {avecBibliothequeAcademyCode} from '../lib/academycode/bibliotheque-academycode.jsx';
 
 const messages = defineMessages({
     libraryTitle: {
@@ -35,9 +36,9 @@ class SpriteLibrary extends React.PureComponent {
     render () {
         return (
             <LibraryComponent
-                data={spriteLibraryContent}
+                data={this.props.data}
                 id="spriteLibrary"
-                tags={spriteTags}
+                tags={this.props.tags}
                 title={this.props.intl.formatMessage(messages.libraryTitle)}
                 onItemSelected={this.handleItemSelect}
                 onRequestClose={this.props.onRequestClose}
@@ -47,10 +48,13 @@ class SpriteLibrary extends React.PureComponent {
 }
 
 SpriteLibrary.propTypes = {
+    data: PropTypes.arrayOf(PropTypes.object).isRequired,
+    tags: PropTypes.arrayOf(PropTypes.object).isRequired,
     intl: intlShape.isRequired,
     onActivateBlocksTab: PropTypes.func.isRequired,
     onRequestClose: PropTypes.func,
     vm: PropTypes.instanceOf(VM).isRequired
 };
 
-export default injectIntl(SpriteLibrary);
+// Bibliothèque enrichie d'AcademyCode (lot L8) : éléments d'origine en tête, catalogue chargé à l'ouverture.
+export default avecBibliothequeAcademyCode('sprites', spriteLibraryContent, spriteTags)(injectIntl(SpriteLibrary));
