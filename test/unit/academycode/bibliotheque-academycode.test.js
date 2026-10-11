@@ -40,10 +40,39 @@ describe('bibliothèque enrichie d\'AcademyCode : catalogue', () => {
     const origine = new Set([...sprites, ...backdrops, ...sounds].map(e => e.name));
     const etiquettes = Object.keys(catalogue.etiquettes);
 
-    test('88 sprites, 88 décors (22 scènes × 4 ambiances), comme la sélection', () => {
+    test('82 sprites, 56 décors (25 lieux, ambiances seulement là où elles ont un sens), comme la sélection', () => {
         expect(catalogue.sprites).toHaveLength(Object.values(selection.sprites).flat().length);
-        expect(catalogue.sprites).toHaveLength(88);
-        expect(catalogue.backdrops).toHaveLength(88);
+        expect(catalogue.sprites).toHaveLength(82);
+        expect(catalogue.backdrops).toHaveLength(56);
+        const lieux = Object.values(selection.decors).flat();
+        expect(lieux).toHaveLength(25);
+        expect(catalogue.backdrops.map(d => d.name)).toEqual(expect.arrayContaining(['salle de classe', 'circuit',
+            'terrain de basket', 'forêt (soir)', 'forêt (nuit)', 'chambre enfant (nuit)']));
+        expect(catalogue.backdrops.map(d => d.name).filter(n => /\(aube\)/.test(n))).toEqual([]);
+    });
+
+    test('aucun doublon d\'image ; doublons de Scratch retirés', () => {
+        const md5 = [...catalogue.sprites.flatMap(s => s.costumes), ...catalogue.backdrops].map(c => c.md5ext);
+        expect(new Set(md5).size).toBe(md5.length);
+        const noms = catalogue.sprites.map(s => s.name);
+        for (const n of ['chat', 'chien', 'papillon', 'fantôme', 'banane', 'étoile bonus', 'ballon']) {
+            expect(noms).not.toContain(n);
+        }
+        expect(noms).toContain('ballon de foot');
+    });
+
+    test('une 2e pose « b » après chaque couleur des sprites qui bougent', () => {
+        for (const n of Object.keys(selection.poses)) {
+            const c = catalogue.sprites.find(s => s.name === n).costumes.map(x => x.name);
+            expect(c).toHaveLength(8);
+            expect(c.slice(0, 4)).toEqual([n, `${n} b`, `${n} (couleur 2)`, `${n} b (couleur 2)`]);
+        }
+    });
+
+    test('pièce et clé redessinées, en plusieurs couleurs', () => {
+        const c = n => catalogue.sprites.find(s => s.name === n).costumes.map(x => x.name);
+        expect(c('pièce')).toEqual(['pièce (or)', 'pièce (argent)', 'pièce (bronze)']);
+        expect(c('clé')).toHaveLength(4);
     });
 
     test('chaque dessin est livré, et nommé par son empreinte', () => {

@@ -1,5 +1,5 @@
 {
- "note": "Sélection validée par lot L7 (docs/editeurs/l7-bibliotheque-selection-2026-10-11.md dans AcademyCode). Dessins originaux Codeurs en Herbe (Espace Animateurs). Régénérer : node scripts/bibliotheque-academycode.mjs <dossier static de l Espace>.",
+ "note": "Sélection L7, finitions du 11/10/2026 (poses, décors ajoutés, pièce et clé redessinées, ambiances soir/nuit) : docs/editeurs/l7-bibliotheque-finitions-2026-10-11.md dans AcademyCode. Dessins originaux Codeurs en Herbe (Espace Animateurs) et finitions scripts/bibliotheque-academycode-dessins.mjs. Régénérer : node scripts/bibliotheque-academycode.mjs <dossier static de l Espace>. Un lieu sans ambiances n a que sa version de jour.",
  "etiquettes": {
   "personnages": "Personnages",
   "animaux": "Animaux",
@@ -22,7 +22,6 @@
    "magicien",
    "sorcière",
    "monstre gentil",
-   "fantôme",
    "astronaute fille",
    "astronaute garçon",
    "exploratrice",
@@ -40,8 +39,6 @@
    "avatar surpris"
   ],
   "animaux": [
-   "chat",
-   "chien",
    "lion",
    "coq",
    "loup",
@@ -52,7 +49,6 @@
    "pingouin",
    "chouette",
    "oiseau bleu",
-   "papillon",
    "abeille",
    "coccinelle",
    "dragon"
@@ -63,7 +59,6 @@
    "diamant",
    "piece",
    "gâteau",
-   "banane",
    "fraise",
    "glace",
    "pizza",
@@ -104,8 +99,7 @@
    "médaille",
    "chronomètre",
    "voiture course",
-   "cible",
-   "étoile bonus"
+   "cible"
   ]
  },
  "decors": {
@@ -126,7 +120,8 @@
    "hiver enneigé",
    "jardin fleuri",
    "parc automne",
-   "fête foraine"
+   "fête foraine",
+   "salle de classe"
   ],
   "espace": [
    "espace",
@@ -135,11 +130,14 @@
   ],
   "sports": [
    "stade foot",
-   "court tennis"
+   "court tennis",
+   "circuit",
+   "terrain de basket"
   ]
  },
  "noms": {
-  "piece": "pièce"
+  "piece": "pièce",
+  "ballon": "ballon de foot"
  },
  "existants": {
   "Cat": [
@@ -183,6 +181,95 @@
   ],
   "Space": [
    "espace"
+  ]
+ },
+ "poses": {
+  "garçon casquette": "marche",
+  "garçon lunettes": "marche",
+  "fille tresses": "marche",
+  "fille couettes": "marche",
+  "chevalier": "marche",
+  "pirate": "marche",
+  "princesse aventurière": "marche",
+  "magicien": "sort",
+  "footballeuse": "tir",
+  "basketteur": "dribble",
+  "joueuse tennis": "revers",
+  "poisson": "nage",
+  "abeille": "ailes",
+  "dragon": "envol",
+  "grenouille": "saut",
+  "pingouin": "dandine",
+  "chouette": "clin",
+  "tortue": "pattes",
+  "fusée": "flamme",
+  "vaisseau": "reacteur",
+  "hélicoptère": "rotor",
+  "soucoupe": "lumieres"
+ },
+ "ambiances": {
+  "forêt": [
+   "soir",
+   "nuit"
+  ],
+  "château": [
+   "soir",
+   "nuit"
+  ],
+  "village": [
+   "soir",
+   "nuit"
+  ],
+  "ville": [
+   "soir",
+   "nuit"
+  ],
+  "lac": [
+   "soir",
+   "nuit"
+  ],
+  "montagne": [
+   "soir",
+   "nuit"
+  ],
+  "désert": [
+   "soir",
+   "nuit"
+  ],
+  "plage": [
+   "soir",
+   "nuit"
+  ],
+  "jungle": [
+   "soir",
+   "nuit"
+  ],
+  "hiver enneigé": [
+   "soir",
+   "nuit"
+  ],
+  "jardin fleuri": [
+   "soir",
+   "nuit"
+  ],
+  "parc automne": [
+   "soir",
+   "nuit"
+  ],
+  "fête foraine": [
+   "soir",
+   "nuit"
+  ],
+  "stade foot": [
+   "soir",
+   "nuit"
+  ],
+  "circuit": [
+   "soir",
+   "nuit"
+  ],
+  "chambre enfant": [
+   "nuit"
   ]
  }
 }
