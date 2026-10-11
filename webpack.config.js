@@ -137,7 +137,7 @@ const buildConfig = baseConfig.clone()
     .addPlugin(new HtmlWebpackPlugin({
         ...commonHtmlWebpackPluginOptions,
         chunks: ['gui'],
-        // gui.js?<empreinte du build> : un nouveau build = une nouvelle adresse, donc jamais l'ancien gui.js d'un cache.
+        // gui.js?<empreinte du build> : un nouveau build = une nouvelle adresse, jamais l'ancien gui.js d'un cache.
         // index.html est servi en no-cache et gui.js en cache long par public/editeur/.htaccess d'AcademyCode.
         hash: true,
         template: 'src/playground/index.ejs',
