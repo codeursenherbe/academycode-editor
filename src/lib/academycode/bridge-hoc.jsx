@@ -22,7 +22,9 @@ const BAR_STYLE = {
     position: 'fixed',
     right: 8,
     top: 6,
-    zIndex: 1000,
+    // Au-dessus de la barre de menus de Scratch (491), SOUS ses fenêtres (bibliothèques, 510) et la couche de
+    // glisser-déposer (1000) : une bibliothèque ouverte n'est jamais cachée par nos boutons, messages ou consignes.
+    zIndex: 495,
     display: 'flex',
     gap: 6,
     alignItems: 'center',
@@ -34,7 +36,7 @@ const NOTICE_STYLE = reussi => ({
     right: 8,
     // Sous les boutons de taille de la scène (jusqu'à 92 px), qui restent cliquables.
     top: 100,
-    zIndex: 1001,
+    zIndex: 496,
     maxWidth: 320,
     padding: '10px 12px',
     background: reussi ? '#e8f7ee' : '#fff',
@@ -52,7 +54,7 @@ const PANEL_STYLE = {
     left: 320,
     // Sous la barre de menus et les onglets Code/Costumes/Sons, qui doivent rester cliquables.
     top: 92,
-    zIndex: 1000,
+    zIndex: 495,
     width: 260,
     maxHeight: 'calc(100vh - 120px)',
     display: 'flex',
