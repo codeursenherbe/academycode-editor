@@ -9,6 +9,10 @@ const target = process.argv[2] ?? '../academycode/public/editeur';
 if (readFileSync('build/gui.js', 'utf8').includes('react-dom.development')) {
     throw new Error('build/gui.js est un build de développement : relance `npm run build` (NODE_ENV=production).');
 }
+// gui.js est servi en cache long : index.html doit l'appeler par une adresse versionnée (option hash du build).
+if (!/<script[^>]+src="gui\.js\?[0-9a-f]{16,}"/.test(readFileSync('build/index.html', 'utf8'))) {
+    throw new Error('build/index.html n\'appelle pas gui.js?<empreinte> : le cache long servirait un ancien éditeur.');
+}
 if (!existsSync(target)) throw new Error(`Dossier introuvable : ${target}`);
 for (const entry of readdirSync(target)) {
     if (entry !== '.htaccess') rmSync(`${target}/${entry}`, {recursive: true, force: true});
