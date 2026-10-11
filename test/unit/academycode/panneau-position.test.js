@@ -1,4 +1,4 @@
-import {borner, lire, ecrire, VISIBLE, HAUT_MIN, BANDEAU} from '../../../src/lib/academycode/panneau-position.js';
+import {borner, lire, ecrire, deplacer, VISIBLE, HAUT_MIN, BANDEAU} from '../../../src/lib/academycode/panneau-position.js';
 
 const fenetre = {w: 1280, h: 800};
 
@@ -26,6 +26,12 @@ describe('position du panneau de consignes', () => {
         ecrire(s, '12', {x: 410, y: 130});
         expect(lire(s, '12')).toEqual({x: 410, y: 130});
         expect(lire(s, '13')).toBeNull();
+    });
+
+    test('les flèches déplacent de 10 px, Maj + flèches de 50 px ; les autres touches ne déplacent pas', () => {
+        expect(deplacer({x: 100, y: 100}, 'ArrowRight', false)).toEqual({x: 110, y: 100});
+        expect(deplacer({x: 100, y: 100}, 'ArrowUp', true)).toEqual({x: 100, y: 50});
+        expect(deplacer({x: 100, y: 100}, 'Enter', false)).toBeNull();
     });
 
     test('une valeur abîmée ou un stockage interdit ne cassent rien', () => {

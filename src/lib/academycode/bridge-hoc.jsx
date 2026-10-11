@@ -10,7 +10,7 @@ import {
     comparedMysteryId, fetchMysteryConfig, restartProject
 } from './api.js';
 import {observer, comparer, message as messageComportement} from './comportement.mjs';
-import {borner, lire as lirePosition, ecrire as ecrirePosition} from './panneau-position.js';
+import {borner, deplacer, lire as lirePosition, ecrire as ecrirePosition} from './panneau-position.js';
 
 const PERIOD_MS = 30000;
 
@@ -79,6 +79,8 @@ const BANDEAU_STYLE = {
     userSelect: 'none',
     fontWeight: 600
 };
+// Focus clavier bien visible sur le bandeau (contour ambre, comme ailleurs dans AcademyCode).
+const BANDEAU_FOCUS_STYLE = {...BANDEAU_STYLE, outline: '3px solid #ffb21e', outlineOffset: -3};
 const FERMER_STYLE = {
     marginLeft: 'auto',
     width: 28,
@@ -164,6 +166,13 @@ const BridgeHOC = function (WrappedComponent) {
             this.handleSaisie = this.handleSaisie.bind(this);
             this.handleDeplacement = this.handleDeplacement.bind(this);
             this.handleLacher = this.handleLacher.bind(this);
+            this.handleClavier = this.handleClavier.bind(this);
+            this.handleFermer = this.handleFermer.bind(this);
+            // Fenêtre redimensionnée : on redessine, et le panneau est ramené dans la fenêtre (borné au rendu).
+            this.handleResize = () => this.forceUpdate();
+            this.handleBandeauFocus = () => this.setState({bandeauFocus: true});
+            this.handleBandeauBlur = () => this.setState({bandeauFocus: false});
+            this.boutonConsignes = React.createRef();
             this.handleSuite = this.handleSuite.bind(this);
             this.handleRestartAsk = () => this.setState({confirmer: true});
             this.handleRestartCancel = () => this.setState({confirmer: false});
@@ -188,6 +197,7 @@ const BridgeHOC = function (WrappedComponent) {
             document.removeEventListener('fullscreenchange', this.handleFullscreenChange);
             document.removeEventListener('visibilitychange', this.handleHidden);
             window.removeEventListener('pagehide', this.handleHidden);
+            window.removeEventListener('resize', this.handleResize);
             if (this.props.vm) this.props.vm.off('PROJECT_CHANGED', this.handleChanged);
         }
 
@@ -210,6 +220,7 @@ const BridgeHOC = function (WrappedComponent) {
             document.addEventListener('fullscreenchange', this.handleFullscreenChange);
             document.addEventListener('visibilitychange', this.handleHidden);
             window.addEventListener('pagehide', this.handleHidden);
+            window.addEventListener('resize', this.handleResize);
             this.saver.start();
         }
 
@@ -271,6 +282,31 @@ const BridgeHOC = function (WrappedComponent) {
             if (!this.saisie) return;
             this.saisie = null;
             if (this.state.position) ecrirePosition(window.localStorage, this.lesson, this.state.position);
+        }
+
+        // Fermer (croix ou Échap) : le focus revient au bouton qui rouvre les consignes, l'enfant ne se perd pas.
+        handleFermer () {
+            this.setState({panneau: false}, () => {
+                if (this.boutonConsignes.current) this.boutonConsignes.current.focus();
+            });
+        }
+
+        // Clavier : Échap ferme ; sur le bandeau, les flèches déplacent (10 px, 50 px avec Maj).
+        handleClavier (event) {
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                event.stopPropagation();
+                this.handleFermer();
+                return;
+            }
+            if (!event.target.hasAttribute('data-panneau-bandeau')) return;
+            const cadre = event.currentTarget.getBoundingClientRect();
+            const voulue = deplacer({x: cadre.left, y: cadre.top}, event.key, event.shiftKey);
+            if (!voulue) return;
+            event.preventDefault();
+            const position = borner(voulue, PANEL_LARGEUR, {w: window.innerWidth, h: window.innerHeight});
+            this.setState({position});
+            ecrirePosition(window.localStorage, this.lesson, position);
         }
 
         stylePanneau () {
@@ -425,13 +461,20 @@ const BridgeHOC = function (WrappedComponent) {
                     {this.lesson && this.state.consignes && this.state.panneau && (
                         <div
                             aria-label="Consignes"
+                            id="academycode-consignes"
                             role="region"
                             style={this.stylePanneau()}
+                            onKeyDown={this.handleClavier}
                         >
                             <div
+                                aria-label="Déplacer les consignes (souris, doigt ou flèches du clavier)"
                                 data-panneau-bandeau
-                                style={BANDEAU_STYLE}
+                                role="button"
+                                style={this.state.bandeauFocus ? BANDEAU_FOCUS_STYLE : BANDEAU_STYLE}
+                                tabIndex={0}
                                 title="Glisse ce bandeau pour déplacer les consignes"
+                                onBlur={this.handleBandeauBlur}
+                                onFocus={this.handleBandeauFocus}
                                 onLostPointerCapture={this.handleLacher}
                                 onPointerDown={this.handleSaisie}
                                 onPointerMove={this.handleDeplacement}
@@ -442,7 +485,7 @@ const BridgeHOC = function (WrappedComponent) {
                                 <button
                                     aria-label="Fermer les consignes"
                                     style={FERMER_STYLE}
-                                    onClick={this.handlePanneau}
+                                    onClick={this.handleFermer}
                                 >{'×'}</button>
                             </div>
                             <div style={CORPS_STYLE}>
@@ -490,6 +533,9 @@ const BridgeHOC = function (WrappedComponent) {
                             )}
                             {this.state.consignes && (
                                 <button
+                                    aria-controls="academycode-consignes"
+                                    aria-expanded={this.state.panneau}
+                                    ref={this.boutonConsignes}
                                     style={BUTTON_SECONDAIRE}
                                     onClick={this.handlePanneau}
                                 >

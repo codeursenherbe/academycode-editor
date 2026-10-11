@@ -9,6 +9,23 @@ export const BANDEAU = 36;
 
 const cle = lecon => `academycode:consignes:${lecon}`;
 
+// Déplacement au clavier (lot L3) : flèches 10 px, Maj + flèches 50 px.
+const PAS = {ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1]};
+
+/**
+ * Nouvelle position après une flèche du clavier, ou null si la touche ne déplace pas le panneau.
+ * @param {{x: number, y: number}} position - position actuelle
+ * @param {string} touche - KeyboardEvent.key
+ * @param {boolean} grand - Maj enfoncée
+ * @returns {{x: number, y: number}|null} position voulue (à borner ensuite)
+ */
+export const deplacer = (position, touche, grand) => {
+    const pas = PAS[touche];
+    if (!pas) return null;
+    const n = grand ? 50 : 10;
+    return {x: position.x + (pas[0] * n), y: position.y + (pas[1] * n)};
+};
+
 /**
  * Ramène une position dans la fenêtre.
  * @param {{x: number, y: number}} position - coin haut-gauche voulu
