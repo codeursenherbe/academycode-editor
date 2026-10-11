@@ -10,6 +10,7 @@ import {
     comparedMysteryId, fetchMysteryConfig, restartProject
 } from './api.js';
 import {observer, comparer, message as messageComportement} from './comportement.mjs';
+import {borner, lire as lirePosition, ecrire as ecrirePosition} from './panneau-position.js';
 
 const PERIOD_MS = 30000;
 
@@ -52,9 +53,9 @@ const PANEL_STYLE = {
     zIndex: 1000,
     width: 260,
     maxHeight: 'calc(100vh - 120px)',
-    overflowY: 'auto',
+    display: 'flex',
+    flexDirection: 'column',
     boxShadow: '0 2px 8px rgba(0,0,0,.15)',
-    padding: '10px 12px',
     background: '#fff',
     border: '1px solid #d9d9d9',
     borderRadius: 8,
@@ -63,6 +64,34 @@ const PANEL_STYLE = {
     lineHeight: 1.4,
     color: '#222'
 };
+const PANEL_LARGEUR = PANEL_STYLE.width;
+// Bandeau à saisir pour déplacer le panneau (souris, doigt, stylet) : sans défilement ni sélection pendant le geste.
+const BANDEAU_STYLE = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    padding: '6px 6px 6px 12px',
+    background: '#4f46e5',
+    color: '#fff',
+    borderRadius: '7px 7px 0 0',
+    cursor: 'move',
+    touchAction: 'none',
+    userSelect: 'none',
+    fontWeight: 600
+};
+const FERMER_STYLE = {
+    marginLeft: 'auto',
+    width: 28,
+    height: 28,
+    border: 0,
+    borderRadius: 999,
+    background: 'transparent',
+    color: '#fff',
+    font: '700 18px sans-serif',
+    lineHeight: 1,
+    cursor: 'pointer'
+};
+const CORPS_STYLE = {padding: '8px 12px 10px', overflowY: 'auto'};
 
 // Bouton principal aux couleurs d'AcademyCode (brand-600), secondaires discrets sur le violet du menu.
 const BUTTON_STYLE = {
@@ -112,6 +141,8 @@ const BridgeHOC = function (WrappedComponent) {
                 fullscreen: false,
                 consignes: null,
                 panneau: !this.challenge,
+                // Position choisie par l'enfant pour cette leçon (null : place par défaut, à droite de la palette).
+                position: this.lesson ? lirePosition(window.localStorage, this.lesson) : null,
                 termine: false,
                 confirmer: false,
                 conforme: null
@@ -130,6 +161,9 @@ const BridgeHOC = function (WrappedComponent) {
             this.handleFullscreen = this.handleFullscreen.bind(this);
             this.handleFullscreenChange = this.handleFullscreenChange.bind(this);
             this.handlePanneau = this.handlePanneau.bind(this);
+            this.handleSaisie = this.handleSaisie.bind(this);
+            this.handleDeplacement = this.handleDeplacement.bind(this);
+            this.handleLacher = this.handleLacher.bind(this);
             this.handleSuite = this.handleSuite.bind(this);
             this.handleRestartAsk = () => this.setState({confirmer: true});
             this.handleRestartCancel = () => this.setState({confirmer: false});
@@ -212,6 +246,37 @@ const BridgeHOC = function (WrappedComponent) {
 
         handlePanneau () {
             this.setState(state => ({panneau: !state.panneau}));
+        }
+
+        // Déplacement du panneau par son bandeau : le pointeur est capturé, le panneau reste dans la fenêtre,
+        // et la position est gardée pour cette leçon au lâcher.
+        handleSaisie (event) {
+            if (event.button !== 0 || event.target.closest('button')) return;
+            const cadre = event.currentTarget.parentElement.getBoundingClientRect();
+            this.saisie = {dx: event.clientX - cadre.left, dy: event.clientY - cadre.top};
+            event.currentTarget.setPointerCapture(event.pointerId);
+            event.preventDefault();
+        }
+
+        handleDeplacement (event) {
+            if (!this.saisie) return;
+            this.setState({position: borner(
+                {x: event.clientX - this.saisie.dx, y: event.clientY - this.saisie.dy},
+                PANEL_LARGEUR,
+                {w: window.innerWidth, h: window.innerHeight}
+            )});
+        }
+
+        handleLacher () {
+            if (!this.saisie) return;
+            this.saisie = null;
+            if (this.state.position) ecrirePosition(window.localStorage, this.lesson, this.state.position);
+        }
+
+        stylePanneau () {
+            if (!this.state.position) return PANEL_STYLE;
+            const {x, y} = borner(this.state.position, PANEL_LARGEUR, {w: window.innerWidth, h: window.innerHeight});
+            return {...PANEL_STYLE, left: x, top: y};
         }
 
         // Le navigateur quitte le plein écran de lui-même dès qu'il ouvre une fenêtre système
@@ -358,19 +423,42 @@ const BridgeHOC = function (WrappedComponent) {
                         </div>
                     )}
                     {this.lesson && this.state.consignes && this.state.panneau && (
-                        <div style={PANEL_STYLE}>
-                            <strong>{this.state.consignes.titre}</strong>
-                            {this.state.consignes.objectif && (
-                                <p style={{margin: '4px 0 8px'}}>{this.state.consignes.objectif}</p>
-                            )}
-                            <ol style={{margin: 0, paddingLeft: 18}}>
-                                {this.state.consignes.etapes.map((etape, i) => (
-                                    <li
-                                        key={i}
-                                        style={{marginBottom: 4}}
-                                    >{etape}</li>
-                                ))}
-                            </ol>
+                        <div
+                            aria-label="Consignes"
+                            role="region"
+                            style={this.stylePanneau()}
+                        >
+                            <div
+                                data-panneau-bandeau
+                                style={BANDEAU_STYLE}
+                                title="Glisse ce bandeau pour déplacer les consignes"
+                                onLostPointerCapture={this.handleLacher}
+                                onPointerDown={this.handleSaisie}
+                                onPointerMove={this.handleDeplacement}
+                                onPointerUp={this.handleLacher}
+                            >
+                                <span aria-hidden="true">{'⠿'}</span>
+                                <span>{'Consignes'}</span>
+                                <button
+                                    aria-label="Fermer les consignes"
+                                    style={FERMER_STYLE}
+                                    onClick={this.handlePanneau}
+                                >{'×'}</button>
+                            </div>
+                            <div style={CORPS_STYLE}>
+                                <strong>{this.state.consignes.titre}</strong>
+                                {this.state.consignes.objectif && (
+                                    <p style={{margin: '4px 0 8px'}}>{this.state.consignes.objectif}</p>
+                                )}
+                                <ol style={{margin: 0, paddingLeft: 18}}>
+                                    {this.state.consignes.etapes.map((etape, i) => (
+                                        <li
+                                            key={i}
+                                            style={{marginBottom: 4}}
+                                        >{etape}</li>
+                                    ))}
+                                </ol>
+                            </div>
                         </div>
                     )}
                     {this.lesson && (
