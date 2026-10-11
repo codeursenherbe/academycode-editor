@@ -11,6 +11,8 @@ import {
 } from './api.js';
 import {observer, comparer, message as messageComportement} from './comportement.mjs';
 import {borner, deplacer, lire as lirePosition, ecrire as ecrirePosition} from './panneau-position.js';
+import {disponible as pleinEcranDisponible, actif as pleinEcranActif, basculer, sortir, EVENEMENTS}
+    from './plein-ecran.js';
 
 const PERIOD_MS = 30000;
 
@@ -135,6 +137,8 @@ const BridgeHOC = function (WrappedComponent) {
             // Défi : la mission est écrite sur la page ; la bulle fermée laisse voir toute la palette.
             this.challenge = isChallenge(this.lesson);
             this.retour = this.challenge ? 'Retour au défi' : 'Retour à la leçon';
+            // Sans plein écran possible (navigateur, ou iframe sans allowfullscreen) : pas de bouton qui ne fait rien.
+            this.pleinEcran = pleinEcranDisponible(document);
             this.started = false;
             this.state = {
                 message: '',
@@ -194,7 +198,7 @@ const BridgeHOC = function (WrappedComponent) {
 
         componentWillUnmount () {
             this.saver.stop();
-            document.removeEventListener('fullscreenchange', this.handleFullscreenChange);
+            for (const nom of EVENEMENTS) document.removeEventListener(nom, this.handleFullscreenChange);
             document.removeEventListener('visibilitychange', this.handleHidden);
             window.removeEventListener('pagehide', this.handleHidden);
             window.removeEventListener('resize', this.handleResize);
@@ -217,7 +221,7 @@ const BridgeHOC = function (WrappedComponent) {
                 .catch(() => {});
             this.saver.markClean();
             this.props.vm.on('PROJECT_CHANGED', this.handleChanged);
-            document.addEventListener('fullscreenchange', this.handleFullscreenChange);
+            for (const nom of EVENEMENTS) document.addEventListener(nom, this.handleFullscreenChange);
             document.addEventListener('visibilitychange', this.handleHidden);
             window.addEventListener('pagehide', this.handleHidden);
             window.addEventListener('resize', this.handleResize);
@@ -238,20 +242,15 @@ const BridgeHOC = function (WrappedComponent) {
 
         // Plein écran natif : l'éditeur Scratch est à l'étroit dans l'iframe de la leçon.
         // Nécessite allowfullscreen sur l'iframe côté AcademyCode.
+        // API standard ou préfixée webkit (anciens Safari d'iPad) : voir plein-ecran.js.
         handleFullscreen () {
-            if (document.fullscreenElement) {
-                document.exitFullscreen();
-            } else {
-                document.documentElement.requestFullscreen();
-            }
+            basculer(document);
         }
 
         // Ramène l'enfant à la page de la leçon (quiz, bouton « Leçon terminée »),
         // qui est sous l'iframe : on sort du plein écran et la page fait défiler.
         handleSuite () {
-            if (document.fullscreenElement) {
-                document.exitFullscreen();
-            }
+            sortir(document);
             window.parent.postMessage({academycode: 'lecon-terminee'}, window.location.origin);
         }
 
@@ -318,7 +317,7 @@ const BridgeHOC = function (WrappedComponent) {
         // Le navigateur quitte le plein écran de lui-même dès qu'il ouvre une fenêtre système
         // (import d'une image, par exemple) : on le dit à l'enfant plutôt que de le laisser deviner.
         handleFullscreenChange () {
-            const fullscreen = Boolean(document.fullscreenElement);
+            const fullscreen = pleinEcranActif(document);
             const sorti = this.state.fullscreen && !fullscreen;
             this.setState({
                 fullscreen,
@@ -516,12 +515,14 @@ const BridgeHOC = function (WrappedComponent) {
                             >
                                 {'Vérifier mon projet'}
                             </button>
-                            <button
-                                style={BUTTON_SECONDAIRE}
-                                onClick={this.handleFullscreen}
-                            >
-                                {this.state.fullscreen ? this.retour : 'Plein écran'}
-                            </button>
+                            {this.pleinEcran && (
+                                <button
+                                    style={BUTTON_SECONDAIRE}
+                                    onClick={this.handleFullscreen}
+                                >
+                                    {this.state.fullscreen ? this.retour : 'Plein écran'}
+                                </button>
+                            )}
                             {this.challenge && (
                                 <button
                                     disabled={this.state.busy}
