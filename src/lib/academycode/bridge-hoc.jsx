@@ -10,7 +10,7 @@ import {
     comparedMysteryId, fetchMysteryConfig, restartProject
 } from './api.js';
 import {observer, comparer, message as messageComportement} from './comportement.mjs';
-import {borner, deplacer, lire as lirePosition, ecrire as ecrirePosition} from './panneau-position.js';
+import {borner, deplacer, placeLibre, lire as lirePosition, ecrire as ecrirePosition} from './panneau-position.js';
 import {disponible as pleinEcranDisponible, actif as pleinEcranActif, basculer, sortir, EVENEMENTS}
     from './plein-ecran.js';
 
@@ -151,6 +151,8 @@ const BridgeHOC = function (WrappedComponent) {
                 panneau: !this.challenge,
                 // Position choisie par l'enfant pour cette leçon (null : place par défaut, à droite de la palette).
                 position: this.lesson ? lirePosition(window.localStorage, this.lesson) : null,
+                // Sans position choisie : place qui ne recouvre pas les scripts repris (jamais mémorisée).
+                placement: null,
                 termine: false,
                 confirmer: false,
                 conforme: null
@@ -176,6 +178,7 @@ const BridgeHOC = function (WrappedComponent) {
             this.handleFermer = this.handleFermer.bind(this);
             // Fenêtre redimensionnée : on redessine, et le panneau est ramené dans la fenêtre (borné au rendu).
             this.handleResize = () => this.forceUpdate();
+            this.placerSansMasquer = this.placerSansMasquer.bind(this);
             this.handleBandeauFocus = () => this.setState({bandeauFocus: true});
             this.handleBandeauBlur = () => this.setState({bandeauFocus: false});
             this.boutonConsignes = React.createRef();
@@ -219,7 +222,8 @@ const BridgeHOC = function (WrappedComponent) {
                 this.setState({message: error.message});
             }
             fetchConsignes(this.lesson)
-                .then(consignes => this.setState({consignes}))
+                // Les blocs repris sont dessinés juste après le chargement : on attend un instant avant de les mesurer.
+                .then(consignes => this.setState({consignes}, () => setTimeout(this.placerSansMasquer, 300)))
                 .catch(() => {});
             this.saver.markClean();
             this.props.vm.on('PROJECT_CHANGED', this.handleChanged);
@@ -257,7 +261,26 @@ const BridgeHOC = function (WrappedComponent) {
         }
 
         handlePanneau () {
-            this.setState(state => ({panneau: !state.panneau}));
+            this.setState(state => ({panneau: !state.panneau}), () => {
+                if (this.state.panneau) setTimeout(this.placerSansMasquer, 0);
+            });
+        }
+
+        // Recette du 14/10/2026 : à l'ouverture, le panneau recouvrait le programme repris. Tant que l'enfant ne l'a
+        // pas déplacé, il se met du côté libre de la zone de code (panneau-position.js, placeLibre).
+        placerSansMasquer () {
+            if (this.state.position || !this.state.panneau) return;
+            const zone = document.querySelector('.blocklyMainBackground');
+            const scripts = document.querySelector('.blocklySvg > .blocklyWorkspace > .blocklyBlockCanvas');
+            const panneau = document.getElementById('academycode-consignes');
+            if (!zone || !scripts || !panneau) return;
+            const s = scripts.getBoundingClientRect();
+            const p = panneau.getBoundingClientRect();
+            this.setState({placement: placeLibre(
+                zone.getBoundingClientRect(),
+                s.width > 0 && s.height > 0 ? s : null,
+                {x: PANEL_STYLE.left, y: PANEL_STYLE.top, w: p.width, h: p.height}
+            )});
         }
 
         // Déplacement du panneau par son bandeau : le pointeur est capturé, le panneau reste dans la fenêtre,
@@ -311,8 +334,9 @@ const BridgeHOC = function (WrappedComponent) {
         }
 
         stylePanneau () {
-            if (!this.state.position) return PANEL_STYLE;
-            const {x, y} = borner(this.state.position, PANEL_LARGEUR, {w: window.innerWidth, h: window.innerHeight});
+            const position = this.state.position || this.state.placement;
+            if (!position) return PANEL_STYLE;
+            const {x, y} = borner(position, PANEL_LARGEUR, {w: window.innerWidth, h: window.innerHeight});
             return {...PANEL_STYLE, left: x, top: y};
         }
 

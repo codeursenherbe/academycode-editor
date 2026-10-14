@@ -66,3 +66,24 @@ export const ecrire = (stockage, lecon, position) => {
         // navigation privée stricte : le panneau reviendra simplement à sa place par défaut
     }
 };
+
+// Écart gardé entre le panneau et le bord droit de la zone de code.
+export const MARGE = 16;
+
+/**
+ * Place du panneau quand l'enfant ne l'a pas déplacé (recette du 14/10/2026 : à l'ouverture, il recouvrait le
+ * programme repris de la leçon précédente). S'il recouvre les scripts, il passe à droite de la zone de code, si ce
+ * côté est libre ; sinon il garde sa place par défaut (l'enfant peut toujours le déplacer). Jamais mémorisée.
+ * @param {{left: number, top: number, right: number, bottom: number}} zone - zone de code (coordonnées écran)
+ * @param {{left: number, top: number, right: number, bottom: number}|null} scripts - scripts visibles, ou null
+ * @param {{x: number, y: number, w: number, h: number}} panneau - place par défaut et taille du panneau
+ * @returns {{x: number, y: number}|null} position à prendre, ou null pour garder la place par défaut
+ */
+export const placeLibre = (zone, scripts, panneau) => {
+    if (!scripts) return null;
+    const recouvre = x => x < scripts.right && x + panneau.w > scripts.left &&
+        panneau.y < scripts.bottom && panneau.y + panneau.h > scripts.top;
+    if (!recouvre(panneau.x)) return null;
+    const droite = Math.round(zone.right - panneau.w - MARGE);
+    return droite > panneau.x && !recouvre(droite) ? {x: droite, y: panneau.y} : null;
+};

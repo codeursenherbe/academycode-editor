@@ -1,4 +1,4 @@
-import {borner, lire, ecrire, deplacer, VISIBLE, HAUT_MIN, BANDEAU} from '../../../src/lib/academycode/panneau-position.js';
+import {borner, lire, ecrire, deplacer, placeLibre, VISIBLE, HAUT_MIN, BANDEAU, MARGE} from '../../../src/lib/academycode/panneau-position.js';
 
 const fenetre = {w: 1280, h: 800};
 
@@ -43,5 +43,26 @@ describe('position du panneau de consignes', () => {
         const interdit = {getItem: () => { throw new Error('interdit'); }, setItem: () => { throw new Error('plein'); }};
         expect(lire(interdit, '12')).toBeNull();
         expect(() => ecrire(interdit, '12', {x: 1, y: 2})).not.toThrow();
+    });
+});
+
+// Recette du 14/10/2026 (« Ajouter un score ») : à l'ouverture, le panneau recouvrait le programme repris.
+describe('place libre du panneau (sans position choisie par l’enfant)', () => {
+    const zone = {left: 312, top: 92, right: 940, bottom: 900};
+    const panneau = {x: 320, y: 92, w: 260, h: 330};
+
+    test('sans script, ou si les scripts ne sont pas sous le panneau, la place par défaut reste', () => {
+        expect(placeLibre(zone, null, panneau)).toBeNull();
+        expect(placeLibre(zone, {left: 620, top: 250, right: 760, bottom: 450}, panneau)).toBeNull();
+        expect(placeLibre(zone, {left: 330, top: 500, right: 600, bottom: 700}, panneau)).toBeNull(); // sous le panneau
+    });
+
+    test('des scripts sous le panneau : il passe à droite de la zone de code, si c’est libre', () => {
+        expect(placeLibre(zone, {left: 330, top: 250, right: 560, bottom: 450}, panneau)).toEqual({x: 940 - 260 - MARGE, y: 92});
+    });
+
+    test('pas de côté libre (écran étroit, script large) : la place par défaut reste, l’enfant peut déplacer', () => {
+        expect(placeLibre(zone, {left: 330, top: 250, right: 900, bottom: 450}, panneau)).toBeNull();
+        expect(placeLibre({...zone, right: 640}, {left: 330, top: 250, right: 400, bottom: 450}, panneau)).toBeNull();
     });
 });
