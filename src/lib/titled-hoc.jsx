@@ -11,9 +11,11 @@ import {setProjectTitle} from '../reducers/project-title';
 
 const messages = defineMessages({
     defaultProjectTitle: {
-        id: 'gui.gui.defaultProjectTitle',
+        // AcademyCode : identifiant propre au fork, absent de scratch-l10n, donc toujours « Mon projet »
+        // (l'original affichait « Projet Scratch » : marque Scratch, décision D1-a du 15/10/2026).
+        id: 'ac.gui.defaultProjectTitle',
         description: 'Default title for project',
-        defaultMessage: 'Scratch Project'
+        defaultMessage: 'Mon projet'
     }
 });
 

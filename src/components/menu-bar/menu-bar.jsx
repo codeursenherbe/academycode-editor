@@ -84,10 +84,12 @@ import fileIcon from './icon--file.svg';
 import editIcon from './icon--edit.svg';
 
 import scratchLogo from './scratch-logo.svg';
-import ninetiesLogo from './nineties_logo.svg';
-import catLogo from './cat_logo.svg';
-import prehistoricLogo from './prehistoric-logo.svg';
-import oldtimeyLogo from './oldtimey-logo.svg';
+// AcademyCode (D1-a, 15/10/2026) : les modes « voyage dans le temps » sont inaccessibles (isTotallyNormal faux) ;
+// leurs logos (dont un Scratch Cat) ne partent plus dans le paquet publié : tous les modes gardent notre logo.
+const ninetiesLogo = scratchLogo;
+const catLogo = scratchLogo;
+const prehistoricLogo = scratchLogo;
+const oldtimeyLogo = scratchLogo;
 
 import sharedMessages from '../../lib/shared-messages';
 
@@ -406,7 +408,7 @@ class MenuBar extends React.Component {
                         <div className={classNames(styles.menuBarItem)}>
                             <img
                                 id="logo_img"
-                                alt="Scratch"
+                                alt="AcademyCode"
                                 className={classNames(styles.scratchLogo, {
                                     [styles.clickable]: typeof this.props.onClickLogo !== 'undefined'
                                 })}
